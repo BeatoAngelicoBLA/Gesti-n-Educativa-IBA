@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alba Digital - Gestión Educativa</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
+        header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .container { display: flex; gap: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 1; min-height: 600px; }
+        .hidden { display: none; }
+        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #0369a1; }
+        .item-link { color: #0284c7; text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .item-link:hover { color: #0369a1; }
+        .doc-preview { width: 100%; height: 520px; border: 2px solid #cbd5e1; margin-top: 15px; border-radius: 6px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 60px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px; font-family: inherit; resize: none; color: #334155; }
+        .doc-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        th { background-color: #f8fafc; color: #475569; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🏫 Alba Digital — Arquitectura Unificada Escolar</h2>
+    <div>
+        <button onclick="mostrarSeccion('inicio')">👥 Panel de Estudiantes</button>
+        <button onclick="mostrarSeccion('global-constancias')">📋 Historial de Constancias</button>
+    </pre></div>
+</header>
+
+<div class="container">
+    <div id="panel-principal" class="panel">
+        
+        <div id="seccion-inicio">
+            <h3>Fichas de Alumnos Matriculados</h3>
+            <p>Arquitectura basada en el Proyecto Alba. Selecciona un estudiante para navegar circularmente por sus legajos y documentación:</p>
+            <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5; list-style-type: square;"></ul>
+        </div>
+
+        <div id="seccion-legajo" class="hidden">
+            <h3 style="color:#0c4a6e;">📂 Legajo Digital: <span id="legajo-titulo-nombre"></span></h3>
+            <span id="nro-legajo-badge" style="background:#e0f2fe; color:#0369a1; padding:5px 10px; border-radius:4px; font-weight: bold;"></span>
+            
+            <h4 style="margin-top:25px;">📋 Datos Registrados (Campos de Información Textarea)</h4>
+            <div class="info-grid">
+                <div><label><strong>Nombre y Apellido:</strong></label><textarea id="f-nombre" readonly></textarea></div>
+                <div><label><strong>DNI:</strong></label><textarea id="f-dni" readonly></textarea></div>
+                <div><label><strong>Fecha y Lugar de Nacimiento:</strong></label><textarea id="f-nacimiento" readonly></textarea></div>
+                <div><label><strong>Domicilio Legal:</strong></label><textarea id="f-domicilio" readonly></textarea></div>
+                <div><label><strong>Teléfonos de Contacto:</strong></label><textarea id="f-telefonos" readonly></textarea></div>
+                <div><label><strong>Mails de Contacto:</strong></label><textarea id="f-mails" readonly></textarea></div>
+            </div>
+
+            <h4>📑 Documentación Obligatoria del Legajo (Modelo Alba)</h4>
+            <div id="documentos-legajo-container"></div>
+
+            <h4>📝 Constancias Académicas Emitidas</h4>
+            <div id="constancias-legajo-container"></div>
+            
+            <br>
+            <button onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
+        </div>
+
+        <div id="seccion-global-constancias" class="hidden">
+            <h3>📋 Registro Histórico de Documentación Emitida</h3>
+            <p>Trazabilidad cruzada: al hacer clic en el nombre del estudiante, el sistema redirige automáticamente a su legajo específico.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estudiante (Enlace Cruzado)</th>
+                        <th>Tipo de Documento</th>
+                        <th>Fecha de Emisión</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-constancias"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel" style="max-width: 480px; background: #f8fafc;">
+        <h3>👁️ Visor de Documentos Digitales</h3>
+        <p id="visor-placeholder" style="color:#64748b;">Haz clic en "Ver Documento" en cualquier sección de la app para cargar el PDF original aquí sin recargar la página.</p>
+        <div id="visor-contenedor" class="hidden">
+            <h4 id="visor-titulo" style="color:#0c4a6e; margin-bottom:5px;"></h4>
+            <iframe id="visor-iframe" class="doc-preview" src=""></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BASE DE DATOS RELACIONAL SIMULADA EN MEMORIA (Inspirada en Proyecto Alba)
+    const bd_simulada = [
+        {
+            id: "est-1",
+            nombre: "Martina",
+            apellido: "González",
+            dni: "45.678.912",
+            fechaNacimiento: "15 de Abril de 2005",
+            lugarNacimiento: "Buenos Aires, Argentina",
+            domicilio: "Av. Corrientes 1234, CABA",
+            telefonos: "Celular Alumna: 11-2345-6789\nTeléfono Tutor: 011-4555-1234",
+            mails: "principal: martina.g@colegio.edu.ar\nalternativo: tutor.martina@mail.com",
+            legajo: {
+                nroLegajo: "LEG-2026-A042",
+                fichaMatriculacionUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                tituloSecundarioUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                contratoEducativoUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                aptoPsicofisicoUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            },
+            constancias: [
+                { id: "c-1", tipo: "Constancia de Alumno Regular", fecha: "01/06/2026", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                { id: "c-2", tipo: "Certificado de Inasistencia Justificada", fecha: "10/06/2026", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
+            ]
+        },
+        {
+            id: "est-2",
+            nombre: "Julián",
+            apellido: "Roca",
+            dni: "46.112.354",
+            fechaNacimiento: "22 de Agosto de 2006",
+            lugarNacimiento: "Córdoba, Argentina",
+            domicilio: "Calle Belgrano 456, Córdoba Cap.",
+            telefonos: "Celular Alumno: 351-987-6543",
+            mails: "julian.roca@colegio.edu.ar",
+            legajo: {
+                nroLegajo: "LEG-2026-A109",
+                fichaMatriculacionUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                tituloSecundarioUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                contratoEducativoUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                aptoPsicofisicoUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            },
+            constancias: [
+                { id: "c-3", tipo: "Constancia de Alumno Regular", fecha: "14/05/2026", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
+            ]
+        }
+    ];
+
+    // LÓGICA DE NAVEGACIÓN Y RENDERIZADO (UX TRACABLE)
+    function cargarInicio() {
+        const lista = document.getElementById('lista-estudiantes');
+        lista.innerHTML = '';
+        bd_simulada.forEach(est => {
+            lista.innerHTML += `
+                <li>
+                    <span class="item-link" onclick="verLegajo('${est.id}')">${est.apellido}, ${est.nombre}</span> 
+                    — DNI: ${est.dni} <span class="badge">Legajo: ${est.legajo.nroLegajo}</span>
+                </li>`;
+        });
+
+        // Cargar tabla global de constancias (Crucial para navegación cruzada)
+        const tabla = document.getElementById('tabla-constancias');
+        tabla.innerHTML = '';
+        bd_simulada.forEach(est => {
+            est.constancias.forEach(c => {
+                tabla.innerHTML += `
+                    <tr>
+                        <td><span class="item-link" onclick="verLegajo('${est.id}')">${est.apellido}, ${est.nombre}</span></td>
+                        <td><strong>${c.tipo}</strong></td>
+                        <td>${c.fecha}</td>
+                        <td><span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}')">Ver en Visor</span></td>
+                    </tr>`;
+            });
+        });
+    }
+
+    function verLegajo(idEstudiante) {
+        const est = bd_simulada.find(e => e.id === idEstudiante);
+        mostrarSeccion('legajo');
+        
+        document.getElementById('legajo-titulo-nombre').innerText = `${est.apellido}, ${est.nombre}`;
+        document.getElementById('nro-legajo-badge').innerText = `Nº Legajo: ${est.legajo.nroLegajo}`;
+        
+        // Mapeo en campos Textarea
+        document.getElementById('f-nombre').value = `${est.nombre} ${est.apellido}`;
+        document.getElementById('f-dni').value = est.dni;
+        document.getElementById('f-nacimiento').value = `${est.fechaNacimiento} — ${est.lugarNacimiento}`;
+        document.getElementById('f-domicilio').value = est.domicilio;
+        document.getElementById('f-telefonos').value = est.telefonos;
+        document.getElementById('f-mails').value = est.mails;
+
+        // Render de documentos del Legajo
+        document.getElementById('documentos-legajo-container').innerHTML = `
+            <div class="doc-box"><span>📄 Ficha de Matriculación Inicial</span> <span class="item-link" onclick="visualizarDocumento('Ficha de Matriculación', '${est.legajo.fichaMatriculacionUrl}')">Ver Documento</span></div>
+            <div class="doc-box"><span>🎓 Título Secundario Legalizado</span> <span class="item-link" onclick="visualizarDocumento('Título Secundario', '${est.legajo.tituloSecundarioUrl}')">Ver Documento</span></div>
+            <div class="doc-box"><span>📝 Contrato Educativo Anual</span> <span class="item-link" onclick="visualizarDocumento('Contrato Educativo', '${est.legajo.contratoEducativoUrl}')">Ver Documento</span></div>
+            <div class="doc-box"><span>🏥 Certificado Aptitud Psicofísica</span> <span class="item-link" onclick="visualizarDocumento('Apto Psicofísico', '${est.legajo.aptoPsicofisicoUrl}')">Ver Documento</span></div>
+        `;
+
+        // Render de Constancias emitidas por alumno
+        const constContainer = document.getElementById('constancias-legajo-container');
+        constContainer.innerHTML = '';
+        est.constancias.forEach(c => {
+            constContainer.innerHTML += `
+                <div class="doc-box">
+                    <span>📜 ${c.tipo} (${c.fecha})</span> 
+                    <span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}')">Ver en Visor</span>
+                </div>`;
+        });
+    }
+
+    function visualizarDocumento(tipo, url) {
+        document.getElementById('visor-placeholder').classList.add('hidden');
+        document.getElementById('visor-contenedor').classList.remove('hidden');
+        document.getElementById('visor-titulo').innerText = tipo;
+        document.getElementById('visor-iframe').src = url;
+    }
+
+    function mostrarSeccion(seccion) {
+        document.getElementById('seccion-inicio').classList.add('hidden');
+        document.getElementById('seccion-legajo').classList.add('hidden');
+        document.getElementById('seccion-global-constancias').classList.add('hidden');
+        document.getElementById('seccion-' + seccion).classList.remove('hidden');
+    }
+
+    // Carga inicial al abrir la página
+    cargarInicio();
+</script>
+</body>
+</html>
