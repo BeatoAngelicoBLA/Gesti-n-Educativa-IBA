@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Gestión Educativa</title>
+    <title>Alba Digital - Gestión Educativa Integral</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .user-control { background: #0369a1; padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-size: 0.9em; }
+        select { padding: 4px 8px; border-radius: 4px; border: none; font-weight: bold; color: #0c4a6e; }
         .container { display: flex; gap: 20px; }
         .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 1; min-height: 600px; }
         .hidden { display: none; }
@@ -19,27 +21,42 @@
         textarea { width: 100%; height: 60px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px; font-family: inherit; resize: none; color: #334155; }
         .doc-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
         .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .badge-rol { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+        .admin-color { background: #ef4444; color: white; }
+        .docente-color { background: #f59e0b; color: white; }
+        .alumno-color { background: #10b981; color: white; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; color: #475569; }
+        .aviso-permiso { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🏫 Alba Digital — Arquitectura Unificada Escolar</h2>
-    <div>
-        <button onclick="mostrarSeccion('inicio')">👥 Panel de Estudiantes</button>
-        <button onclick="mostrarSeccion('global-constancias')">📋 Historial de Constancias</button>
-    </pre></div>
+    <h2>🏫 Alba Digital — Control Unificado Escolar</h2>
+    
+    <div class="user-control">
+        <span>👤 <strong>Simular Usuario:</strong></span>
+        <select id="selector-rol" onchange="cambiarRol()">
+            <option value="admin">Director/Admin (Control Total)</option>
+            <option value="docente">Prof. Carlos López (Docente)</option>
+            <option value="alumno">Martina González (Estudiante)</option>
+        </select>
+        <span id="badge-usuario-activo" class="badge-rol admin-color">Admin</span>
+    </div>
 </header>
 
 <div class="container">
     <div id="panel-principal" class="panel">
         
+        <div id="bloque-restringido" class="aviso-permiso hidden">
+            ⚠️ Tu categoría de usuario actual no tiene permisos para editar la información o firmar actas. Solo Lectura habilitado.
+        </div>
+        
         <div id="seccion-inicio">
-            <h3>Fichas de Alumnos Matriculados</h3>
-            <p>Arquitectura basada en el Proyecto Alba. Selecciona un estudiante para navegar circularmente por sus legajos y documentación:</p>
+            <h3 id="titulo-panel">Fichas de Alumnos Matriculados</h3>
+            <p id="desc-panel">Selecciona un estudiante para auditar su legajo digital y constancias asociadas:</p>
             <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5; list-style-type: square;"></ul>
         </div>
 
@@ -47,33 +64,37 @@
             <h3 style="color:#0c4a6e;">📂 Legajo Digital: <span id="legajo-titulo-nombre"></span></h3>
             <span id="nro-legajo-badge" style="background:#e0f2fe; color:#0369a1; padding:5px 10px; border-radius:4px; font-weight: bold;"></span>
             
-            <h4 style="margin-top:25px;">📋 Datos Registrados (Campos de Información Textarea)</h4>
+            <h4 style="margin-top:25px;">📋 Datos Registrados (Textareas)</h4>
             <div class="info-grid">
-                <div><label><strong>Nombre y Apellido:</strong></label><textarea id="f-nombre" readonly></textarea></div>
-                <div><label><strong>DNI:</strong></label><textarea id="f-dni" readonly></textarea></div>
-                <div><label><strong>Fecha y Lugar de Nacimiento:</strong></label><textarea id="f-nacimiento" readonly></textarea></div>
-                <div><label><strong>Domicilio Legal:</strong></label><textarea id="f-domicilio" readonly></textarea></div>
-                <div><label><strong>Teléfonos de Contacto:</strong></label><textarea id="f-telefonos" readonly></textarea></div>
-                <div><label><strong>Mails de Contacto:</strong></label><textarea id="f-mails" readonly></textarea></div>
+                <div><label><strong>Nombre y Apellido:</strong></label><textarea id="f-nombre"></textarea></div>
+                <div><label><strong>DNI:</strong></label><textarea id="f-dni"></textarea></div>
+                <div><label><strong>Fecha y Lugar de Nacimiento:</strong></label><textarea id="f-nacimiento"></textarea></div>
+                <div><label><strong>Domicilio Legal:</strong></label><textarea id="f-domicilio"></textarea></div>
+                <div><label><strong>Teléfonos de Contacto:</strong></label><textarea id="f-telefonos"></textarea></div>
+                <div><label><strong>Mails de Contacto:</strong></label><textarea id="f-mails"></textarea></div>
+            </div>
+            
+            <div id="btn-guardar-container" style="margin-bottom: 20px;">
+                <button onclick="guardarDatosCampos()" style="background:#10b981;">💾 Guardar Cambios en Ficha (Exclusivo Admin)</button>
             </div>
 
-            <h4>📑 Documentación Obligatoria del Legajo (Modelo Alba)</h4>
+            <h4>📑 Documentación Obligatoria del Legajo (Fichas PDF)</h4>
             <div id="documentos-legajo-container"></div>
 
             <h4>📝 Constancias Académicas Emitidas</h4>
             <div id="constancias-legajo-container"></div>
             
             <br>
-            <button onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
+            <button id="btn-volver-legajo" onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
         </div>
 
         <div id="seccion-global-constancias" class="hidden">
             <h3>📋 Registro Histórico de Documentación Emitida</h3>
-            <p>Trazabilidad cruzada: al hacer clic en el nombre del estudiante, el sistema redirige automáticamente a su legajo específico.</p>
+            <p>Trazabilidad cruzada del sistema.</p>
             <table>
                 <thead>
                     <tr>
-                        <th>Estudiante (Enlace Cruzado)</th>
+                        <th>Estudiante (Enlace)</th>
                         <th>Tipo de Documento</th>
                         <th>Fecha de Emisión</th>
                         <th>Acción</th>
@@ -86,7 +107,7 @@
 
     <div class="panel" style="max-width: 480px; background: #f8fafc;">
         <h3>👁️ Visor de Documentos Digitales</h3>
-        <p id="visor-placeholder" style="color:#64748b;">Haz clic en "Ver Documento" en cualquier sección de la app para cargar el PDF original aquí sin recargar la página.</p>
+        <p id="visor-placeholder" style="color:#64748b;">Haz clic en "Ver Documento" para cargar el PDF aquí.</p>
         <div id="visor-contenedor" class="hidden">
             <h4 id="visor-titulo" style="color:#0c4a6e; margin-bottom:5px;"></h4>
             <iframe id="visor-iframe" class="doc-preview" src=""></iframe>
@@ -95,7 +116,11 @@
 </div>
 
 <script>
-    // BASE DE DATOS RELACIONAL SIMULADA EN MEMORIA (Inspirada en Proyecto Alba)
+    // CONTROL DE USUARIO ACTIVO
+    let ROL_ACTIVO = "admin"; // Por defecto arranca como Administrador
+    let alumnoSeleccionadoId = null;
+
+    // BASE DE DATOS MUTABLE EN MEMORIA
     const bd_simulada = [
         {
             id: "est-1",
@@ -142,10 +167,34 @@
         }
     ];
 
-    // LÓGICA DE NAVEGACIÓN Y RENDERIZADO (UX TRACABLE)
-    function cargarInicio() {
+    // FUNCIÓN CORE: MANEJO DE ROLES Y PERMISOS (UX/UI ADAPTATIVA)
+    function cambiarRol() {
+        ROL_ACTIVO = document.getElementById('selector-rol').value;
+        const badge = document.getElementById('badge-usuario-activo');
+        
+        // Ajustar colores estéticos del Rol Activo
+        badge.className = "badge-rol";
+        if(ROL_ACTIVO === 'admin') { badge.innerText = "Admin"; badge.classList.add('admin-color'); }
+        if(ROL_ACTIVO === 'docente') { badge.innerText = "Docente"; badge.classList.add('docente-color'); }
+        if(ROL_ACTIVO === 'alumno') { badge.innerText = "Alumno"; badge.classList.add('alumno-color'); }
+
+        // Aplicar Reglas de Negocio en base al Rol
+        if (ROL_ACTIVO === "alumno") {
+            // Un alumno NO puede ver a otros alumnos. Va directo a SU propio legajo (Martina González est-1)
+            verLegajo("est-1");
+            document.getElementById('btn-volver-legajo').classList.add('hidden'); // No puede regresar al listado general
+        } else {
+            // Admin y Docente ven la pantalla de inicio con el listado
+            document.getElementById('btn-volver-legajo').classList.remove('hidden');
+            mostrarSeccion('inicio');
+            actualizarInterfazGeneral();
+        }
+    }
+
+    function actualizarInterfazGeneral() {
         const lista = document.getElementById('lista-estudiantes');
         lista.innerHTML = '';
+        
         bd_simulada.forEach(est => {
             lista.innerHTML += `
                 <li>
@@ -154,7 +203,6 @@
                 </li>`;
         });
 
-        // Cargar tabla global de constancias (Crucial para navegación cruzada)
         const tabla = document.getElementById('tabla-constancias');
         tabla.innerHTML = '';
         bd_simulada.forEach(est => {
@@ -171,21 +219,35 @@
     }
 
     function verLegajo(idEstudiante) {
+        alumnoSeleccionadoId = idEstudiante;
         const est = bd_simulada.find(e => e.id === idEstudiante);
         mostrarSeccion('legajo');
         
         document.getElementById('legajo-titulo-nombre').innerText = `${est.apellido}, ${est.nombre}`;
         document.getElementById('nro-legajo-badge').innerText = `Nº Legajo: ${est.legajo.nroLegajo}`;
         
-        // Mapeo en campos Textarea
+        // Cargar datos en los textareas
         document.getElementById('f-nombre').value = `${est.nombre} ${est.apellido}`;
         document.getElementById('f-dni').value = est.dni;
-        document.getElementById('f-nacimiento').value = `${est.fechaNacimiento} — ${est.lugarNacimiento}`;
+        document.getElementById('f-nacimiento').value = est.fechaNacimiento + " — " + est.lugarNacimiento;
         document.getElementById('f-domicilio').value = est.domicilio;
         document.getElementById('f-telefonos').value = est.telefonos;
         document.getElementById('f-mails').value = est.mails;
 
-        // Render de documentos del Legajo
+        // CAPA DE SEGURIDAD EN TEXTAREAS: Solo el Admin puede editarlos
+        const inputs = ['f-nombre', 'f-dni', 'f-nacimiento', 'f-domicilio', 'f-telefonos', 'f-mails'];
+        if (ROL_ACTIVO === 'admin') {
+            inputs.forEach(id => document.getElementById(id).removeAttribute('readonly'));
+            document.getElementById('btn-guardar-container').classList.remove('hidden');
+            document.getElementById('bloque-restringido').classList.add('hidden');
+        } else {
+            // Docentes y Alumnos ven los campos bloqueados (Solo Lectura)
+            inputs.forEach(id => document.getElementById(id).setAttribute('readonly', true));
+            document.getElementById('btn-guardar-container').classList.add('hidden');
+            document.getElementById('bloque-restringido').classList.remove('hidden');
+        }
+
+        // Render de archivos
         document.getElementById('documentos-legajo-container').innerHTML = `
             <div class="doc-box"><span>📄 Ficha de Matriculación Inicial</span> <span class="item-link" onclick="visualizarDocumento('Ficha de Matriculación', '${est.legajo.fichaMatriculacionUrl}')">Ver Documento</span></div>
             <div class="doc-box"><span>🎓 Título Secundario Legalizado</span> <span class="item-link" onclick="visualizarDocumento('Título Secundario', '${est.legajo.tituloSecundarioUrl}')">Ver Documento</span></div>
@@ -193,7 +255,6 @@
             <div class="doc-box"><span>🏥 Certificado Aptitud Psicofísica</span> <span class="item-link" onclick="visualizarDocumento('Apto Psicofísico', '${est.legajo.aptoPsicofisicoUrl}')">Ver Documento</span></div>
         `;
 
-        // Render de Constancias emitidas por alumno
         const constContainer = document.getElementById('constancias-legajo-container');
         constContainer.innerHTML = '';
         est.constancias.forEach(c => {
@@ -203,6 +264,20 @@
                     <span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}')">Ver en Visor</span>
                 </div>`;
         });
+    }
+
+    // ACCIÓN EXCLUSIVA DE ESCRITURA EN "BASE DE DATOS"
+    function guardarDatosCampos() {
+        if (ROL_ACTIVO !== 'admin') return;
+        
+        const est = bd_simulada.find(e => e.id === alumnoSeleccionadoId);
+        // Guardar las modificaciones que el Admin hizo en las áreas de texto
+        est.domicilio = document.getElementById('f-domicilio').value;
+        est.telefonos = document.getElementById('f-telefonos').value;
+        est.mails = document.getElementById('f-mails').value;
+        
+        alert("🛡️ Sistema Alba: Datos del legajo actualizados con éxito en la base de datos.");
+        actualizarInterfazGeneral();
     }
 
     function visualizarDocumento(tipo, url) {
@@ -219,8 +294,7 @@
         document.getElementById('seccion-' + seccion).classList.remove('hidden');
     }
 
-    // Carga inicial al abrir la página
-    cargarInicio();
+    actualizarInterfazGeneral();
 </script>
 </body>
 </html>
