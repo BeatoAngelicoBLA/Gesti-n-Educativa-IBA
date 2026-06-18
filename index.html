@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Gestión Avanzada de Legajos</title>
+    <title>Alba Digital - Gestión Avanzada de Legajos y Asistencias</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -19,9 +19,16 @@
         
         /* Formularios y Grillas */
         .form-carga { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+        .form-carga.docente-bg { background: #fdf8f0; border: 1px solid #fed7aa; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px; margin-bottom: 15px; }
         .info-bloque { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
         .grid-detalles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        /* Selección de Materias y Asistencias */
+        .selector-materias-box { background: white; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; max-height: 100px; overflow-y: auto; }
+        .selector-materias-box label { display: block; font-size: 0.9em; margin-bottom: 4px; cursor: pointer; }
+        .radio-asistencia { display: flex; gap: 10px; align-items: center; }
+        .radio-asistencia label { cursor: pointer; font-weight: bold; font-size: 0.9em; }
         
         /* Carpetas de Archivos */
         .carpeta-digital { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-top: 15px; }
@@ -32,6 +39,10 @@
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; }
         .badge-materia { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; display: inline-block; }
+        .badge-asist { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; color: white; }
+        .badge-p { background: #10b981; }
+        .badge-a { background: #ef4444; }
+        .badge-j { background: #f59e0b; }
         .input-file-sm { font-size: 0.85em; width: auto; display: inline-block; }
         .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; border: none; color: white; cursor: pointer; margin-left: 3px; }
     </style>
@@ -39,7 +50,7 @@
 <body>
 
 <header>
-    <h2>🏫 Alba Digital — Matrículas y Cátedras</h2>
+    <h2>🏫 Alba Digital — Matrículas, Cátedras y Asistencias</h2>
     <div class="user-control">
         <span>👤 <strong>Simular Usuario:</strong></span>
         <select id="selector-rol" onchange="cambiarRol()" style="width: auto;">
@@ -55,8 +66,9 @@
     <div class="panel">
         
         <div id="menu-navegacion" style="margin-bottom: 20px;">
-            <button onclick="mostrarSeccion('inicio')">👥 Legajos de Alumnos</button>
-            <button onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Legajos de Docentes</button>
+            <button type="button" onclick="mostrarSeccion('inicio')">👥 Legajos de Alumnos</button>
+            <button type="button" onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Legajos de Docentes</button>
+            <button type="button" onclick="mostrarSeccion('gestion-asistencias')" style="background:#0f766e;">📊 Gestión de Asistencias</button>
         </div>
 
         <div id="seccion-inicio">
@@ -73,8 +85,13 @@
                     <input type="email" id="alta-mail-inst" placeholder="Mail Institucional">
                     <input type="email" id="alta-mail-priv" placeholder="Mail Privado">
                     <input type="text" id="alta-telefono" placeholder="Teléfono de Contacto">
+                    
+                    <div>
+                        <span style="font-size:0.85em; color:#166534; font-weight:bold;">Inscribir en Materias:</span>
+                        <div class="selector-materias-box" id="alta-alumno-materias-list"></div>
+                    </div>
                 </div>
-                <button onclick="ejecutarAltaEstudiante()" style="background: #166534; width: 100%;">➕ Matricular Alumno</button>
+                <button type="button" onclick="ejecutarAltaEstudiante()" style="background: #166534; width: 100%;">➕ Matricular Alumno</button>
             </div>
             
             <h3>Nómina de Estudiantes</h3>
@@ -85,14 +102,13 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
                 <h3 style="color:#0c4a6e; margin:0;">📂 Legajo Digital: <span id="leg-alumno-nombre"></span></h3>
                 <div>
-                    <button id="btn-editar-alumno" onclick="cambiarModoEdicionAlumno(true)">✏️ Editar Datos</button>
-                    <button id="btn-guardar-alumno" onclick="guardarCambiosAlumno()" class="hidden" style="background:#10b981;">💾 Guardar Cambios</button>
+                    <button type="button" id="btn-editar-alumno" onclick="cambiarModoEdicionAlumno(true)">✏️ Editar Datos / Cátedras</button>
+                    <button type="button" id="btn-guardar-alumno" onclick="guardarChangesAlumno()" class="hidden" style="background:#10b981;">💾 Guardar Cambios</button>
                 </div>
             </div>
             
             <div class="info-bloque">
-                <div class="grid-detalles" id="contenedor-datos-alumno">
-                    </div>
+                <div class="grid-detalles" id="contenedor-datos-alumno"></div>
             </div>
 
             <div class="carpeta-digital">
@@ -101,36 +117,57 @@
                 <div class="subcarpeta-archivos">
                     <strong>🪪 Fotocopia DNI:</strong>
                     <input type="file" id="file-al-dni" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('alumno', 'dni', 'file-al-dni')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('alumno', 'dni', 'file-al-dni')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-al-dni"></div>
                 </div>
 
                 <div class="subcarpeta-archivos">
                     <strong>🎓 Título Secundario:</strong>
                     <input type="file" id="file-al-titulo" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('alumno', 'titulo', 'file-al-titulo')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('alumno', 'titulo', 'file-al-titulo')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-al-titulo"></div>
                 </div>
 
                 <div class="subcarpeta-archivos">
                     <strong>📝 Matrícula de Inscripción:</strong>
                     <input type="file" id="file-al-matricula" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('alumno', 'matricula', 'file-al-matricula')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('alumno', 'matricula', 'file-al-matricula')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-al-matricula"></div>
                 </div>
 
                 <div class="subcarpeta-archivos">
                     <strong>🩺 Apto Psico-físico:</strong>
                     <input type="file" id="file-al-apto" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('alumno', 'apto', 'file-al-apto')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('alumno', 'apto', 'file-al-apto')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-al-apto"></div>
                 </div>
             </div>
             <br>
-            <button onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
+            <button type="button" onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
         </div>
 
         <div id="seccion-listado-docentes" class="hidden">
+            <div class="form-carga docente-bg">
+                <h4 style="margin: 0; color: #c2410c;">👨‍🏫 Registrar Nuevo Usuario Docente (Requisito Inicial Mínimo)</h4>
+                <div class="form-grid">
+                    <input type="text" id="alta-doc-apellido" placeholder="Apellido *">
+                    <input type="text" id="alta-doc-nombre" placeholder="Nombre *">
+                    <input type="text" id="alta-doc-dni" placeholder="DNI">
+                    <input type="date" id="alta-doc-nacimiento" title="Fecha de Nacimiento">
+                    <input type="text" id="alta-doc-localidad" placeholder="Localidad de Nacimiento">
+                    <input type="text" id="alta-doc-provincia" placeholder="Provincia de Nacimiento">
+                    <input type="text" id="alta-doc-nacionalidad" placeholder="Nacionalidad">
+                    <input type="email" id="alta-doc-mail-inst" placeholder="Mail Institucional">
+                    <input type="email" id="alta-doc-mail-priv" placeholder="Mail Privado">
+                    <input type="text" id="alta-doc-telefono" placeholder="Teléfono de Contacto">
+                    <div>
+                        <span style="font-size:0.85em; color:#c2410c; font-weight:bold;">Asignar Cátedras:</span>
+                        <div class="selector-materias-box" id="alta-doc-materias-list"></div>
+                    </div>
+                </div>
+                <button type="button" onclick="ejecutarAltaDocente()" style="background: #c2410c; width: 100%;">➕ Registrar Docente</button>
+            </div>
+
             <h3>Nómina del Personal de Enseñanza</h3>
             <table>
                 <thead>
@@ -140,45 +177,86 @@
             </table>
 
             <div id="bloque-legajo-docente" class="carpeta-digital hidden" style="margin-top: 25px; background: #fff7ed; border-color: #fed7aa;">
-                <h3 style="color: #c2410c; margin-top:0;">💼 Legajo Único del Docente: <span id="leg-docente-nombre"></span></h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                    <h3 style="color: #c2410c; margin:0;">💼 Legajo Único del Docente: <span id="leg-docente-nombre"></span></h3>
+                    <div>
+                        <button type="button" id="btn-editar-docente" onclick="cambiarModoEdicionDocente(true)" style="background:#e65100;">✏️ Editar Datos / Cátedras</button>
+                        <button type="button" id="btn-guardar-docente" onclick="guardarChangesDocente()" class="hidden" style="background:#10b981;">💾 Guardar Cambios</button>
+                    </div>
+                </div>
+
+                <div class="info-bloque" style="background: white;">
+                    <div class="grid-detalles" id="contenedor-datos-docente"></div>
+                </div>
                 
                 <div class="subcarpeta-archivos" style="background:#fff7ed;">
                     <strong>🪪 Fotocopia DNI (Docente):</strong>
                     <input type="file" id="file-doc-dni" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('docente', 'dni', 'file-doc-dni')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('docente', 'dni', 'file-doc-dni')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-doc-dni"></div>
                 </div>
 
                 <div class="subcarpeta-archivos" style="background:#fff7ed;">
                     <strong>📜 Título de Profesor / Habilitante:</strong>
                     <input type="file" id="file-doc-titulo" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('docente', 'titulo', 'file-doc-titulo')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('docente', 'titulo', 'file-doc-titulo')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-doc-titulo"></div>
                 </div>
 
                 <div class="subcarpeta-archivos" style="background:#fff7ed;">
                     <strong>📂 Ficha Personal / CV:</strong>
                     <input type="file" id="file-doc-ficha" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('docente', 'ficha', 'file-doc-ficha')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('docente', 'ficha', 'file-doc-ficha')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-doc-ficha"></div>
                 </div>
 
                 <div class="subcarpeta-archivos" style="background:#fff7ed;">
                     <strong>🛡️ Seguro / ART:</strong>
                     <input type="file" id="file-doc-seguro" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
-                    <button onclick="subirArchivoLegajo('docente', 'seguro', 'file-doc-seguro')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <button type="button" onclick="subirArchivoLegajo('docente', 'seguro', 'file-doc-seguro')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
                     <div id="lista-docs-doc-seguro"></div>
                 </div>
             </div>
         </div>
 
+        <div id="seccion-gestion-asistencias" class="hidden">
+            <h3 style="color:#0f766e;">📊 Panel del Administrador: Carga y Edición de Asistencias</h3>
+            <p style="font-size:0.95em; color:#475569;">Seleccione la materia y la fecha correspondiente. Puede modificar los datos y guardar la planilla tantas veces como sea necesario.</p>
+            
+            <div class="form-carga" style="background:#f0fdf4; border-color:#99f6e4; display:grid; grid-template-columns: 2fr 1fr; gap:15px;">
+                <div>
+                    <label><strong>Materia / Cátedra Activa:</strong></label>
+                    <select id="asist-filtro-materia" onchange="cargarPlanillaAsistenciaAdmin()" style="margin-top:5px;"></select>
+                </div>
+                <div>
+                    <label><strong>Fecha de Control:</strong></label>
+                    <input type="date" id="asist-filtro-fecha" onchange="cargarPlanillaAsistenciaAdmin()" style="margin-top:5px;">
+                </div>
+            </div>
+
+            <table style="border-color:#99f6e4;">
+                <thead style="background:#f0fdf4;">
+                    <tr>
+                        <th>Estudiante Inscripto</th>
+                        <th>DNI</th>
+                        <th style="width:250px;">Condición (Sujeto a Modificación)</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-carga-asistencias"></tbody>
+            </table>
+            
+            <div style="margin-top:15px; text-align:right;">
+                <button type="button" onclick="guardarPlanillaAsistenciaAdmin()" style="background:#0f766e; padding:12px 25px; font-size:1em;">💾 Guardar / Modificar Registro de Asistencias</button>
+            </div>
+        </div>
+
         <div id="seccion-vista-docente" class="hidden">
-            <h3>👨‍🏫 Panel del Profesor: Carlos López</h3>
-            <p>Seleccione la materia activa para ver las listas correspondientes:</p>
+            <h3>👨‍🏫 Panel de Control de Profesores</h3>
+            <p>Seleccione la materia activa para ver las listas correspondientes y el historial general de asistencias:</p>
             <div id="docente-materias-botones" style="margin-bottom: 15px;"></div>
             
             <table>
-                <thead><tr><th>Alumno Inscrito</th><th>DNI de Control</th></tr></thead>
+                <thead><tr><th>Alumno Inscrito</th><th>DNI de Control</th><th>Asistencias en la Materia (Historial Reciente)</th></tr></thead>
                 <tbody id="tabla-alumnos-materia-docente"></tbody>
             </table>
         </div>
@@ -189,7 +267,7 @@
                 <h4>📋 Ficha de Requisitos Académicos</h4>
                 <div class="grid-detalles" id="portal-alumno-datos"></div>
             </div>
-            <h4>📚 Mis Cátedras Activas</h4>
+            <h4>📚 Mis Cátedras Activas y Estados de Asistencia</h4>
             <div id="portal-alumno-materias"></div>
         </div>
 
@@ -223,12 +301,25 @@
             }
         ],
         docentes: [
-            { id: "doc-1", nombre: "Carlos", apellido: "López", materiasIds: ["mat-1", "mat-2"], archivos: { dni: [], titulo: [], ficha: [], seguro: [] } }
+            { 
+                id: "doc-1", nombre: "Carlos", apellido: "López", dni: "32.145.987",
+                fechaNac: "1985-08-22", localidad: "Rosario", provincia: "Santa Fe", nacionalidad: "Argentino",
+                mailInst: "c.lopez@alba.edu.ar", mailPriv: "carlos.lopez.edu@gmail.com", tel: "341-4444-987",
+                materiasIds: ["mat-1", "mat-2"], 
+                archivos: { dni: [], titulo: [], ficha: [], seguro: [] } 
+            }
         ],
         materias: [
             { id: "mat-1", nombre: "Historia" },
-            { id: "mat-2", nombre: "Matemática" }
-        ]
+            { id: "mat-2", nombre: "Matemática" },
+            { id: "mat-3", nombre: "Geografía" },
+            { id: "mat-4", filter: "Física", nombre: "Física" },
+            { id: "mat-5", nombre: "Química" }
+        ],
+        asistencias: {
+            "2026-06-18_mat-1_est-1": "P",
+            "2026-06-17_mat-1_est-1": "J"
+        }
     };
 
     function cambiarRol() {
@@ -252,18 +343,45 @@
     }
 
     function mostrarSeccion(sec) {
-        ['inicio', 'legajo', 'listado-docentes', 'vista-docente', 'vista-alumno'].forEach(s => {
-            document.getElementById('seccion-' + s).classList.add('hidden');
+        ['inicio', 'legajo', 'listado-docentes', 'gestion-asistencias', 'vista-docente', 'vista-alumno'].forEach(s => {
+            const el = document.getElementById('seccion-' + s);
+            if(el) el.classList.add('hidden');
         });
-        document.getElementById('seccion-' + sec).classList.remove('hidden');
-        if(sec !== 'listado-docentes') document.getElementById('bloque-legajo-docente').classList.add('hidden');
+        const target = document.getElementById('seccion-' + sec);
+        if(target) target.classList.remove('hidden');
+        
+        if(sec !== 'listado-docentes') {
+            const blq = document.getElementById('bloque-legajo-docente');
+            if(blq) blq.classList.add('hidden');
+        }
+
+        if(sec === 'gestion-asistencias') {
+            initGestionAsistenciasAdmin();
+        }
+    }
+
+    function renderizarSelectoresDeMaterias() {
+        const contenedorAlu = document.getElementById('alta-alumno-materias-list');
+        const contenedorDoc = document.getElementById('alta-doc-materias-list');
+        
+        if(contenedorAlu) {
+            contenedorAlu.innerHTML = '';
+            bd.materias.forEach(m => {
+                contenedorAlu.innerHTML += `<label><input type="checkbox" name="mat-alu-check" value="${m.id}"> ${m.nombre}</label>`;
+            });
+        }
+        if(contenedorDoc) {
+            contenedorDoc.innerHTML = '';
+            bd.materias.forEach(m => {
+                contenedorDoc.innerHTML += `<label><input type="checkbox" name="mat-doc-check" value="${m.id}"> ${m.nombre}</label>`;
+            });
+        }
     }
 
     function initAdmin() {
         const lista = document.getElementById('lista-estudiantes');
         if(lista) {
             lista.innerHTML = '';
-            bd.getEstudiantes = bd.estudiantes; // Resguardo
             bd.estudiantes.forEach(est => {
                 lista.innerHTML += `<li>📁 <span class="item-link" onclick="abrirLegajoAlumno('${est.id}')">${est.apellido}, ${est.nombre}</span></li>`;
             });
@@ -273,20 +391,92 @@
         if(tbody) {
             tbody.innerHTML = '';
             bd.docentes.forEach(doc => {
-                const mats = doc.materiasIds.map(mId => bd.materias.find(m => m.id === mId).nombre).join(', ');
+                const mats = doc.materiasIds.map(mId => {
+                    const mObj = bd.materias.find(m => m.id === mId);
+                    return mObj ? mObj.nombre : mId;
+                }).join(', ');
                 tbody.innerHTML += `<tr>
                     <td><strong>${doc.apellido}, ${doc.nombre}</strong></td>
-                    <td>${mats}</td>
-                    <td><button onclick="abrirLegajoDocente('${doc.id}')" style="background:#f97316; padding: 5px 10px;">📁 Ver Carpeta Única</button></td>
+                    <td>${mats || '<span style="color:gray">Ninguna</span>'}</td>
+                    <td><button type="button" onclick="abrirLegajoDocente('${doc.id}')" style="background:#f97316; padding: 5px 10px;">📁 Ver Carpeta Única</button></td>
                 </tr>`;
             });
         }
+        renderizarSelectoresDeMaterias();
+    }
+
+    function initGestionAsistenciasAdmin() {
+        const selectMat = document.getElementById('asist-filtro-materia');
+        const inputFecha = document.getElementById('asist-filtro-fecha');
+        
+        if(selectMat && selectMat.options.length === 0) {
+            bd.materias.forEach(m => {
+                selectMat.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+            });
+        }
+        if(inputFecha && !inputFecha.value) {
+            inputFecha.value = new Date().toISOString().split('T')[0];
+        }
+        cargarPlanillaAsistenciaAdmin();
+    }
+
+    function cargarPlanillaAsistenciaAdmin() {
+        const mId = document.getElementById('asist-filtro-materia').value;
+        const fecha = document.getElementById('asist-filtro-fecha').value;
+        const tbody = document.getElementById('tabla-carga-asistencias');
+        
+        if(!tbody || !mId || !fecha) return;
+        tbody.innerHTML = '';
+
+        const alumnosInscriptos = bd.estudiantes.filter(e => e.materiasIds.includes(mId));
+
+        if(alumnosInscriptos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray; font-style:italic;">No hay estudiantes inscriptos en esta materia.</td></tr>`;
+            return;
+        }
+
+        alumnosInscriptos.forEach(est => {
+            const llave = `${fecha}_${mId}_${est.id}`;
+            const valorActual = bd.asistencias[llave] || "P";
+
+            tbody.innerHTML += `<tr>
+                <td><strong>${est.apellido}, ${est.nombre}</strong></td>
+                <td>${est.dni}</td>
+                <td>
+                    <div class="radio-asistencia">
+                        <label style="color:#10b981;"><input type="radio" name="asist_rad_${est.id}" value="P" ${valorActual === 'P' ? 'checked' : ''}> P</label>
+                        <label style="color:#ef4444;"><input type="radio" name="asist_rad_${est.id}" value="A" ${valorActual === 'A' ? 'checked' : ''}> A</label>
+                        <label style="color:#f59e0b;"><input type="radio" name="asist_rad_${est.id}" value="J" ${valorActual === 'J' ? 'checked' : ''}> J</label>
+                    </div>
+                </td>
+            </tr>`;
+        });
+    }
+
+    function guardarPlanillaAsistenciaAdmin() {
+        const mId = document.getElementById('asist-filtro-materia').value;
+        const fecha = document.getElementById('asist-filtro-fecha').value;
+        const alumnosInscriptos = bd.estudiantes.filter(e => e.materiasIds.includes(mId));
+
+        alumnosInscriptos.forEach(est => {
+            const selector = `input[name="asist_rad_${est.id}"]:checked`;
+            const elementoChecked = document.querySelector(selector);
+            if(elementoChecked) {
+                const llave = `${fecha}_${mId}_${est.id}`;
+                bd.asistencias[llave] = elementoChecked.value;
+            }
+        });
+
+        alert("💾 Registro de asistencias guardado/modificado correctamente.");
     }
 
     function ejecutarAltaEstudiante() {
         const ap = document.getElementById('alta-apellido').value.trim();
         const nom = document.getElementById('alta-nombre').value.trim();
         if(!ap || !nom) { alert("⚠️ El Apellido y el Nombre son requeridos obligatoriamente."); return; }
+
+        const checks = document.querySelectorAll('input[name="mat-alu-check"]:checked');
+        const materiasSeleccionadas = Array.from(checks).map(cb => cb.value);
 
         bd.estudiantes.push({
             id: "est-" + (bd.estudiantes.length + 1),
@@ -299,13 +489,41 @@
             mailInst: document.getElementById('alta-mail-inst').value.trim() || "No cargado",
             mailPriv: document.getElementById('alta-mail-priv').value.trim() || "No cargado",
             tel: document.getElementById('alta-telefono').value.trim() || "No cargado",
-            materiasIds: ["mat-1"],
+            materiasIds: materiasSeleccionadas,
             archivos: { dni: [], titulo: [], matricula: [], apto: [] }
         });
 
         ['alta-apellido', 'alta-nombre', 'alta-dni', 'alta-nacimiento', 'alta-localidad', 'alta-provincia', 'alta-nacionalidad', 'alta-mail-inst', 'alta-mail-priv', 'alta-telefono'].forEach(id => document.getElementById(id).value = '');
         initAdmin();
-        alert("🎉 Legajo creado.");
+        alert("🎉 Legajo de alumno creado exitosamente.");
+    }
+
+    function ejecutarAltaDocente() {
+        const ap = document.getElementById('alta-doc-apellido').value.trim();
+        const nom = document.getElementById('alta-doc-nombre').value.trim();
+        if(!ap || !nom) { alert("⚠️ El Apellido y el Nombre son requeridos obligatoriamente."); return; }
+
+        const checks = document.querySelectorAll('input[name="mat-doc-check"]:checked');
+        const materiasDocente = Array.from(checks).map(cb => cb.value);
+
+        bd.docentes.push({
+            id: "doc-" + (bd.docentes.length + 1),
+            nombre: nom, apellido: ap,
+            dni: document.getElementById('alta-doc-dni').value.trim() || "No cargado",
+            fechaNac: document.getElementById('alta-doc-nacimiento').value || "No cargado",
+            localidad: document.getElementById('alta-doc-localidad').value.trim() || "No cargado",
+            provincia: document.getElementById('alta-doc-provincia').value.trim() || "No cargado",
+            nacionalidad: document.getElementById('alta-doc-nacionalidad').value.trim() || "No cargado",
+            mailInst: document.getElementById('alta-doc-mail-inst').value.trim() || "No cargado",
+            mailPriv: document.getElementById('alta-doc-mail-priv').value.trim() || "No cargado",
+            tel: document.getElementById('alta-doc-telefono').value.trim() || "No cargado",
+            materiasIds: materiasDocente,
+            archivos: { dni: [], titulo: [], ficha: [], seguro: [] }
+        });
+
+        ['alta-doc-apellido', 'alta-doc-nombre', 'alta-doc-dni', 'alta-doc-nacimiento', 'alta-doc-localidad', 'alta-doc-provincia', 'alta-doc-nacionalidad', 'alta-doc-mail-inst', 'alta-doc-mail-priv', 'alta-doc-telefono'].forEach(id => document.getElementById(id).value = '');
+        initAdmin();
+        alert("🎉 Nuevo docente registrado con éxito.");
     }
 
     function abrirLegajoAlumno(id) {
@@ -322,6 +540,11 @@
         if (!modoEdicion) {
             document.getElementById('btn-editar-alumno').classList.remove('hidden');
             document.getElementById('btn-guardar-alumno').classList.add('hidden');
+            const matsNombres = est.materiasIds.map(mId => {
+                const m = bd.materias.find(m => m.id === mId);
+                return m ? m.nombre : mId;
+            }).join(', ');
+
             cont.innerHTML = `
                 <div><strong>DNI:</strong> <span>${est.dni}</span></div>
                 <div><strong>Nacionalidad:</strong> <span>${est.nacionalidad}</span></div>
@@ -330,10 +553,18 @@
                 <div><strong>Mail Institucional:</strong> <span>${est.mailInst}</span></div>
                 <div><strong>Mail Privado:</strong> <span>${est.mailPriv}</span></div>
                 <div><strong>Teléfono de Contacto:</strong> <span>${est.tel}</span></div>
-                <div><strong>Inscripciones Activas:</strong> <span>${est.materiasIds.map(mId => bd.materias.find(m => m.id === mId).nombre).join(', ')}</span></div>`;
+                <div><strong>Inscripciones Activas:</strong> <span>${matsNombres || 'Ninguna'}</span></div>`;
         } else {
             document.getElementById('btn-editar-alumno').classList.add('hidden');
             document.getElementById('btn-guardar-alumno').classList.remove('hidden');
+            
+            let materiasChecksHTML = `<div class="selector-materias-box" style="margin-top:5px;">`;
+            bd.materias.forEach(m => {
+                const asignada = est.materiasIds.includes(m.id) ? 'checked' : '';
+                materiasChecksHTML += `<label><input type="checkbox" name="edit-mat-alu-check" value="${m.id}" ${asignada}> ${m.nombre}</label>`;
+            });
+            materiasChecksHTML += `</div>`;
+
             cont.innerHTML = `
                 <div><strong>DNI:</strong> <input type="text" id="edit-dni" value="${est.dni}"></div>
                 <div><strong>Nacionalidad:</strong> <input type="text" id="edit-nacio" value="${est.nacionalidad}"></div>
@@ -342,12 +573,13 @@
                 <div><strong>Provincia:</strong> <input type="text" id="edit-prov" value="${est.provincia}"></div>
                 <div><strong>Mail Institucional:</strong> <input type="email" id="edit-minst" value="${est.mailInst}"></div>
                 <div><strong>Mail Privado:</strong> <input type="email" id="edit-mpriv" value="${est.mailPriv}"></div>
-                <div><strong>Teléfono:</strong> <input type="text" id="edit-tel" value="${est.tel}"></div>`;
+                <div><strong>Teléfono:</strong> <input type="text" id="edit-tel" value="${est.tel}"></div>
+                <div><strong>Gestionar Inscripción de Materias:</strong> ${materiasChecksHTML}</div>`;
         }
         renderTodosLosArchivos('alumno', est.archivos);
     }
 
-    function guardarCambiosAlumno() {
+    function guardarChangesAlumno() {
         const est = bd.estudiantes.find(e => e.id === alumnoSeleccionadoId);
         est.dni = document.getElementById('edit-dni').value.trim();
         est.nacionalidad = document.getElementById('edit-nacio').value.trim();
@@ -358,17 +590,84 @@
         est.mailPriv = document.getElementById('edit-mpriv').value.trim();
         est.tel = document.getElementById('edit-tel').value.trim();
 
+        const checks = document.querySelectorAll('input[name="edit-mat-alu-check"]:checked');
+        est.materiasIds = Array.from(checks).map(cb => cb.value);
+
         cambiarModoEdicionAlumno(false);
         initAdmin();
-        alert("💾 Ficha actualizada.");
+        alert("💾 Legajo e Inscripciones actualizadas.");
     }
 
     function abrirLegajoDocente(id) {
         docenteSeleccionadoId = id;
-        const doc = bd.docentes.find(d => d.id === id);
         document.getElementById('bloque-legajo-docente').classList.remove('hidden');
+        cambiarModoEdicionDocente(false);
+    }
+
+    function cambiarModoEdicionDocente(modoEdicion) {
+        const doc = bd.docentes.find(d => d.id === docenteSeleccionadoId);
         document.getElementById('leg-docente-nombre').innerText = `${doc.apellido}, ${doc.nombre}`;
+        const cont = document.getElementById('contenedor-datos-docente');
+
+        if (!modoEdicion) {
+            document.getElementById('btn-editar-docente').classList.remove('hidden');
+            document.getElementById('btn-guardar-docente').classList.add('hidden');
+            const matsNombres = doc.materiasIds.map(mId => {
+                const m = bd.materias.find(m => m.id === mId);
+                return m ? m.nombre : mId;
+            }).join(', ');
+
+            cont.innerHTML = `
+                <div><strong>DNI Docente:</strong> <span>${doc.dni}</span></div>
+                <div><strong>Nacionalidad:</strong> <span>${doc.nacionalidad}</span></div>
+                <div><strong>Fecha de Nacimiento:</strong> <span>${doc.fechaNac}</span></div>
+                <div><strong>Lugar (Localidad / Provincia):</strong> <span>${doc.localidad} / ${doc.provincia}</span></div>
+                <div><strong>Mail Institucional:</strong> <span>${doc.mailInst}</span></div>
+                <div><strong>Mail Privado:</strong> <span>${doc.mailPriv}</span></div>
+                <div><strong>Teléfono de Contacto:</strong> <span>${doc.tel}</span></div>
+                <div><strong>Cátedras Asignadas:</strong> <span>${matsNombres || 'Ninguna'}</span></div>`;
+        } else {
+            document.getElementById('btn-editar-docente').classList.add('hidden');
+            document.getElementById('btn-guardar-docente').classList.remove('hidden');
+
+            let materiasChecksHTML = `<div class="selector-materias-box" style="margin-top:5px;">`;
+            bd.materias.forEach(m => {
+                const asignada = doc.materiasIds.includes(m.id) ? 'checked' : '';
+                materiasChecksHTML += `<label><input type="checkbox" name="edit-mat-doc-check" value="${m.id}" ${asignada}> ${m.nombre}</label>`;
+            });
+            materiasChecksHTML += `</div>`;
+
+            cont.innerHTML = `
+                <div><strong>DNI Docente:</strong> <input type="text" id="edit-doc-dni" value="${doc.dni}"></div>
+                <div><strong>Nacionalidad:</strong> <input type="text" id="edit-doc-nacio" value="${doc.nacionalidad}"></div>
+                <div><strong>Fecha de Nacimiento:</strong> <input type="date" id="edit-doc-fnac" value="${doc.fechaNac}"></div>
+                <div><strong>Localidad:</strong> <input type="text" id="edit-doc-local" value="${doc.localidad}"></div>
+                <div><strong>Provincia:</strong> <input type="text" id="edit-doc-prov" value="${doc.provincia}"></div>
+                <div><strong>Mail Institucional:</strong> <input type="email" id="edit-doc-minst" value="${doc.mailInst}"></div>
+                <div><strong>Mail Privado:</strong> <input type="email" id="edit-doc-mpriv" value="${doc.mailPriv}"></div>
+                <div><strong>Teléfono:</strong> <input type="text" id="edit-doc-tel" value="${doc.tel}"></div>
+                <div><strong>Modificar Cátedras Asignadas:</strong> ${materiasChecksHTML}</div>`;
+        }
         renderTodosLosArchivos('docente', doc.archivos);
+    }
+
+    function guardarChangesDocente() {
+        const doc = bd.docentes.find(d => d.id === docenteSeleccionadoId);
+        doc.dni = document.getElementById('edit-doc-dni').value.trim();
+        doc.nacionalidad = document.getElementById('edit-doc-nacio').value.trim();
+        doc.fechaNac = document.getElementById('edit-doc-fnac').value;
+        doc.localidad = document.getElementById('edit-doc-local').value.trim();
+        doc.provincia = document.getElementById('edit-doc-prov').value.trim();
+        doc.mailInst = document.getElementById('edit-doc-minst').value.trim();
+        doc.mailPriv = document.getElementById('edit-doc-mpriv').value.trim();
+        doc.tel = document.getElementById('edit-doc-tel').value.trim();
+
+        const checks = document.querySelectorAll('input[name="edit-mat-doc-check"]:checked');
+        doc.materiasIds = Array.from(checks).map(cb => cb.value);
+
+        cambiarModoEdicionDocente(false);
+        initAdmin();
+        alert("💾 Cátedras y legajo del docente actualizados.");
     }
 
     function subirArchivoLegajo(tipoUsuario, subCarpeta, inputId) {
@@ -421,8 +720,8 @@
                 divContenedor.innerHTML += `<div class="item-documento">
                     <span class="item-link" onclick="verVisor('${arc.nombre}', '${arc.b64}', '${arc.tipo}')">📄 ${arc.nombre.substring(0,22)}</span>
                     <div>
-                        <button class="btn-file-action" style="background:#10b981;" onclick="descargarArchivo('${arc.nombre}', '${arc.b64}')">💾</button>
-                        <button class="btn-file-action" style="background:#ef4444;" onclick="eliminarArchivo('${tipoUsuario}', '${clave}', '${arc.idArc}')">🗑️</button>
+                        <button type="button" class="btn-file-action" style="background:#10b981;" onclick="descargarArchivo('${arc.nombre}', '${arc.b64}')">💾</button>
+                        <button type="button" class="btn-file-action" style="background:#ef4444;" onclick="eliminarArchivo('${tipoUsuario}', '${clave}', '${arc.idArc}')">🗑️</button>
                     </div>
                 </div>`;
             });
@@ -451,13 +750,12 @@
     }
 
     function initPanelDocente() {
-        const doc = bd.docentes[0];
         const contBotones = document.getElementById('docente-materias-botones');
         if(contBotones) {
             contBotones.innerHTML = '';
-            doc.materiasIds.forEach(mId => {
-                const mat = bd.materias.find(m => m.id === mId);
-                contBotones.innerHTML += `<button onclick="filtrarMateriaDocente('${mId}')">📚 ${mat.nombre}</button> `;
+            bd.materias.forEach((mat, index) => {
+                if(index === 0) docenteMateriaActivaId = mat.id;
+                contBotones.innerHTML += `<button type="button" onclick="filtrarMateriaDocente('${mat.id}')">📚 ${mat.nombre}</button> `;
             });
             filtrarMateriaDocente(docenteMateriaActivaId);
         }
@@ -466,10 +764,28 @@
     function filtrarMateriaDocente(mId) {
         docenteMateriaActivaId = mId;
         const tbody = document.getElementById('tabla-alumnos-materia-docente');
-        if(tbody) {
-            tbody.innerHTML = '';
-            bd.estudiantes.filter(e => e.materiasIds.includes(mId)).forEach(est => {
-                tbody.innerHTML += `<tr><td><strong>${est.apellido}, ${est.nombre}</strong></td><td>${est.dni}</td></tr>`;
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        
+        const inscriptos = bd.estudiantes.filter(e => e.materiasIds.includes(mId));
+        if(inscriptos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="color:gray; font-style:italic; text-align:center;">Ningún alumno cursando esta materia actualmente.</td></tr>`;
+        } else {
+            inscriptos.forEach(est => {
+                let resumenAsistencias = [];
+                Object.keys(bd.asistencias).forEach(llave => {
+                    if(llave.includes(`_${mId}_${est.id}`)) {
+                        const fechaCortada = llave.split('_')[0].substring(5);
+                        const valor = bd.asistencias[llave];
+                        resumenAsistencias.push(`<span class="badge-asist badge-${valor.toLowerCase()}">${fechaCortada}: ${valor}</span>`);
+                    }
+                });
+
+                tbody.innerHTML += `<tr>
+                    <td><strong>${est.apellido}, ${est.nombre}</strong></td>
+                    <td>${est.dni}</td>
+                    <td>${resumenAsistencias.join(' ') || '<span style="color:#94a3b8; font-size:0.9em;">Sin registros</span>'}</td>
+                </tr>`;
             });
         }
     }
@@ -491,17 +807,38 @@
         const matContenedor = document.getElementById('portal-alumno-materias');
         if(matContenedor) {
             matContenedor.innerHTML = '';
-            est.materiasIds.forEach(mId => {
-                const mat = bd.materias.find(m => m.id === mId);
-                matContenedor.innerHTML += `<span class="badge-materia" style="background:#10b981; padding: 6px 12px; font-size:1em;">📚 ${mat.nombre}</span>`;
-            });
+            if(est.materiasIds.length === 0) {
+                matContenedor.innerHTML = '<span style="color:gray;">Sin materias asignadas.</span>';
+            } else {
+                est.materiasIds.forEach(mId => {
+                    const mat = bd.materias.find(m => m.id === mId);
+                    if(mat) {
+                        let presentismoHTML = "";
+                        Object.keys(bd.asistencias).forEach(llave => {
+                            if(llave.includes(`_${mId}_${est.id}`)) {
+                                const fecha = llave.split('_')[0];
+                                const valor = bd.asistencias[llave];
+                                presentismoHTML += `<span class="badge-asist badge-${valor.toLowerCase()}" style="margin-top:5px; margin-right:5px; display:inline-block;">📅 ${fecha}: ${valor}</span>`;
+                            }
+                        });
+
+                        matContenedor.innerHTML += `<div class="info-bloque" style="background:white; border-left: 5px solid #10b981;">
+                            <strong>📚 Cátedra: ${mat.nombre}</strong>
+                            <div style="margin-top:8px;">
+                                <span style="font-size:0.85em; color:#64748b; display:block; margin-bottom:4px;">Mi historial de asistencia:</span>
+                                ${presentismoHTML || '<span style="color:#94a3b8; font-size:0.9em; font-style:italic;">No se registran faltas ni asistencias cargadas.</span>'}
+                            </div>
+                        </div>`;
+                    }
+                });
+            }
         }
     }
 
-    // DISPARADOR DE ARRANQUE ABSOLUTO
-    window.onload = function() {
+    // Inicialización 100% segura post-carga de elementos
+    document.addEventListener("DOMContentLoaded", function() {
         initAdmin();
-    };
+    });
 </script>
 </body>
 </html>
