@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Gestión Avanzada de Legajos y Asistencias</title>
+    <title>Alba Digital - Gestión Avanzada de Legajos, Asistencias y Cátedras</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -38,13 +38,16 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; }
-        .badge-materia { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; display: inline-block; }
-        .badge-asist { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; color: white; }
+        .badge-asist { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; color: white; text-align: center; display: inline-block; }
         .badge-p { background: #10b981; }
         .badge-a { background: #ef4444; }
         .badge-j { background: #f59e0b; }
         .input-file-sm { font-size: 0.85em; width: auto; display: inline-block; }
         .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; border: none; color: white; cursor: pointer; margin-left: 3px; }
+        
+        /* Botón de Classroom Estilo Google */
+        .btn-classroom { background: #15803d; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+        .btn-classroom:hover { background: #166534; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
     </style>
 </head>
 <body>
@@ -220,8 +223,8 @@
         </div>
 
         <div id="seccion-gestion-asistencias" class="hidden">
-            <h3 style="color:#0f766e;">📊 Panel del Administrador: Carga y Edición de Asistencias</h3>
-            <p style="font-size:0.95em; color:#475569;">Seleccione la materia y la fecha correspondiente. Puede modificar los datos y guardar la planilla tantas veces como sea necesario.</p>
+            <h3 style="color:#0f766e;">📊 Panel del Admin: Carga y Edición de Asistencias</h3>
+            <p style="font-size:0.95em; color:#475569;">Seleccione la materia y la fecha correspondiente. Modifique los datos y guarde la planilla las veces que lo requiera.</p>
             
             <div class="form-carga" style="background:#f0fdf4; border-color:#99f6e4; display:grid; grid-template-columns: 2fr 1fr; gap:15px;">
                 <div>
@@ -239,7 +242,7 @@
                     <tr>
                         <th>Estudiante Inscripto</th>
                         <th>DNI</th>
-                        <th style="width:250px;">Condición (Sujeto a Modificación)</th>
+                        <th style="width:250px;">Condición (Modificable)</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-carga-asistencias"></tbody>
@@ -267,7 +270,8 @@
                 <h4>📋 Ficha de Requisitos Académicos</h4>
                 <div class="grid-detalles" id="portal-alumno-datos"></div>
             </div>
-            <h4>📚 Mis Cátedras Activas y Estados de Asistencia</h4>
+            
+            <h4>📚 Mis Cátedras Activas, Enlaces y Control de Asistencia</h4>
             <div id="portal-alumno-materias"></div>
         </div>
 
@@ -310,15 +314,16 @@
             }
         ],
         materias: [
-            { id: "mat-1", nombre: "Historia" },
-            { id: "mat-2", nombre: "Matemática" },
-            { id: "mat-3", nombre: "Geografía" },
-            { id: "mat-4", filter: "Física", nombre: "Física" },
-            { id: "mat-5", nombre: "Química" }
+            { id: "mat-1", nombre: "Historia", classroom: "https://classroom.google.com/c/NjA1MTMyMTBa" },
+            { id: "mat-2", nombre: "Matemática", classroom: "https://classroom.google.com/c/MzUxOTg3NjVa" },
+            { id: "mat-3", nombre: "Geografía", classroom: "https://classroom.google.com/c/Nzg5NDU2MTJa" },
+            { id: "mat-4", nombre: "Física", classroom: "https://classroom.google.com/c/NDUzMTIwOTlh" },
+            { id: "mat-5", nombre: "Química", classroom: "https://classroom.google.com/c/ODEyMzQ1Njdj" }
         ],
         asistencias: {
             "2026-06-18_mat-1_est-1": "P",
-            "2026-06-17_mat-1_est-1": "J"
+            "2026-06-17_mat-1_est-1": "J",
+            "2026-06-16_mat-2_est-1": "A"
         }
     };
 
@@ -791,7 +796,7 @@
     }
 
     function initPanelAlumno() {
-        const est = bd.estudiantes[0];
+        const est = bd.estudiantes[0]; // Simula a Martina González
         const tit = document.getElementById('txt-perfil-alumno-titulo');
         if(tit) tit.innerText = `${est.apellido}, ${est.nombre}`;
         
@@ -813,29 +818,69 @@
                 est.materiasIds.forEach(mId => {
                     const mat = bd.materias.find(m => m.id === mId);
                     if(mat) {
-                        let presentismoHTML = "";
-                        Object.keys(bd.asistencias).forEach(llave => {
+                        // Construir la Grilla (Tabla) de Asistencias para esta materia
+                        let filasAsistenciaHTML = "";
+                        let contadorFaltas = { P: 0, A: 0, J: 0 };
+
+                        // Recorrer el historial ordenado de asistencias
+                        Object.keys(bd.asistencias).sort().reverse().forEach(llave => {
                             if(llave.includes(`_${mId}_${est.id}`)) {
                                 const fecha = llave.split('_')[0];
                                 const valor = bd.asistencias[llave];
-                                presentismoHTML += `<span class="badge-asist badge-${valor.toLowerCase()}" style="margin-top:5px; margin-right:5px; display:inline-block;">📅 ${fecha}: ${valor}</span>`;
+                                contadorFaltas[valor]++;
+
+                                let labelEstado = "Presente";
+                                if(valor === 'A') labelEstado = "Ausente";
+                                if(valor === 'J') labelEstado = "Ausencia Justificada";
+
+                                filasAsistenciaHTML += `<tr>
+                                    <td>📅 ${fecha}</td>
+                                    <td><span class="badge-asist badge-${valor.toLowerCase()}">${valor}</span> - ${labelEstado}</td>
+                                </tr>`;
                             }
                         });
 
-                        matContenedor.innerHTML += `<div class="info-bloque" style="background:white; border-left: 5px solid #10b981;">
-                            <strong>📚 Cátedra: ${mat.nombre}</strong>
-                            <div style="margin-top:8px;">
-                                <span style="font-size:0.85em; color:#64748b; display:block; margin-bottom:4px;">Mi historial de asistencia:</span>
-                                ${presentismoHTML || '<span style="color:#94a3b8; font-size:0.9em; font-style:italic;">No se registran faltas ni asistencias cargadas.</span>'}
-                            </div>
-                        </div>`;
+                        // Si no hay registros de faltas/asistencias guardadas
+                        if(filasAsistenciaHTML === "") {
+                            filasAsistenciaHTML = `<tr><td colspan="2" style="color:#94a3b8; font-style:italic; text-align:center;">No se registran datos cargados para esta cátedra.</td></tr>`;
+                        }
+
+                        // Renderizado de la solapa completa de la materia
+                        matContenedor.innerHTML += `
+                            <div class="info-bloque" style="background:white; border-left: 6px solid #0284c7; padding:20px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                    <h3 style="margin:0; color:#0c4a6e;">📚 Asignatura: ${mat.nombre}</h3>
+                                    <a href="${mat.classroom}" target="_blank" class="btn-classroom">
+                                        🟢 Ir al Google Classroom
+                                    </a>
+                                </div>
+                                
+                                <div style="margin-top:15px;">
+                                    <span style="font-size:0.9em; font-weight:bold; color:#64748b;">📋 Grilla de Control de Presentismo:</span>
+                                    
+                                    <table>
+                                        <thead style="background:#f8fafc;">
+                                            <tr>
+                                                <th>Fecha del Dictado</th>
+                                                <th>Estado de Asistencia</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${filasAsistenciaHTML}
+                                        </tbody>
+                                    </table>
+
+                                    <div style="margin-top:8px; font-size:0.85em; color:#475569; text-align:right;">
+                                        <strong>Resumen acumulado:</strong> Presentes: ${contadorFaltas.P} | Ausentes: ${contadorFaltas.A} | Justificados: ${contadorFaltas.J}
+                                    </div>
+                                </div>
+                            </div>`;
                     }
                 });
             }
         }
     }
 
-    // Inicialización 100% segura post-carga de elementos
     document.addEventListener("DOMContentLoaded", function() {
         initAdmin();
     });
