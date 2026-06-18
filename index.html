@@ -45,9 +45,12 @@
         .input-file-sm { font-size: 0.85em; width: auto; display: inline-block; }
         .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; border: none; color: white; cursor: pointer; margin-left: 3px; }
         
-        /* Botón de Classroom Estilo Google */
+        /* Botón de Classroom */
         .btn-classroom { background: #15803d; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
         .btn-classroom:hover { background: #166534; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        
+        /* Estado activo para botones de materias */
+        .btn-materia-activa { background: #c2410c !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -254,12 +257,18 @@
         </div>
 
         <div id="seccion-vista-docente" class="hidden">
-            <h3>👨‍🏫 Panel de Control de Profesores</h3>
-            <p>Seleccione la materia activa para ver las listas correspondientes y el historial general de asistencias:</p>
-            <div id="docente-materias-botones" style="margin-bottom: 15px;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div>
+                    <h3 style="margin:0;">👨‍🏫 Panel de Control del Profesor: <span id="txt-perfil-docente-titulo" style="color:#c2410c;"></span></h3>
+                    <p style="margin:5px 0 0 0; font-size:0.95em; color:#475569;">Haga click en sus cátedras activas para consultar listas oficiales y el historial reciente de presentismo.</p>
+                </div>
+                <div id="docente-classroom-box"></div>
+            </div>
+            
+            <div id="docente-materias-botones" style="margin-bottom: 20px; background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0;"></div>
             
             <table>
-                <thead><tr><th>Alumno Inscrito</th><th>DNI de Control</th><th>Asistencias en la Materia (Historial Reciente)</th></tr></thead>
+                <thead><tr><th>Alumno Inscrito (Orden A-Z)</th><th>DNI de Control</th><th>Asistencias en la Materia (Historial Reciente)</th></tr></thead>
                 <tbody id="tabla-alumnos-materia-docente"></tbody>
             </table>
         </div>
@@ -292,7 +301,7 @@
     let ROL_ACTIVO = "admin";
     let alumnoSeleccionadoId = null;
     let docenteSeleccionadoId = null;
-    let docenteMateriaActivaId = "mat-1";
+    let docenteMateriaActivaId = null;
 
     const bd = {
         estudiantes: [
@@ -302,6 +311,13 @@
                 mailInst: "m.gonzalez@alba.edu.ar", mailPriv: "martina.g@gmail.com", tel: "11-5555-1234",
                 materiasIds: ["mat-1", "mat-2"], 
                 archivos: { dni: [], titulo: [], matricula: [], apto: [] } 
+            },
+            {
+                id: "est-2", nombre: "Bautista", apellido: "Álvarez", dni: "46.123.456",
+                fechaNac: "2005-09-20", localidad: "La Plata", provincia: "Buenos Aires", nacionalidad: "Argentina",
+                mailInst: "b.alvarez@alba.edu.ar", mailPriv: "bauti.alvarez@gmail.com", tel: "221-999-8888",
+                materiasIds: ["mat-1", "mat-3"],
+                archivos: { dni: [], titulo: [], matricula: [], apto: [] }
             }
         ],
         docentes: [
@@ -322,6 +338,7 @@
         ],
         asistencias: {
             "2026-06-18_mat-1_est-1": "P",
+            "2026-06-18_mat-1_est-2": "A",
             "2026-06-17_mat-1_est-1": "J",
             "2026-06-16_mat-2_est-1": "A"
         }
@@ -339,6 +356,10 @@
         } else if (ROL_ACTIVO === 'docente') {
             document.getElementById('menu-navegacion').classList.add('hidden');
             mostrarSeccion('vista-docente');
+            // Forzar que tome la primera materia asignada del docente al iniciar el panel
+            if (bd.docentes[0].materiasIds.length > 0) {
+                docenteMateriaActivaId = bd.docentes[0].materiasIds[0];
+            }
             initPanelDocente();
         } else if (ROL_ACTIVO === 'alumno') {
             document.getElementById('menu-navegacion').classList.add('hidden');
@@ -387,7 +408,8 @@
         const lista = document.getElementById('lista-estudiantes');
         if(lista) {
             lista.innerHTML = '';
-            bd.estudiantes.forEach(est => {
+            const copiaEst = [...bd.estudiantes].sort((a,b) => a.apellido.localeCompare(b.apellido));
+            copiaEst.forEach(est => {
                 lista.innerHTML += `<li>📁 <span class="item-link" onclick="abrirLegajoAlumno('${est.id}')">${est.apellido}, ${est.nombre}</span></li>`;
             });
         }
@@ -433,7 +455,9 @@
         if(!tbody || !mId || !fecha) return;
         tbody.innerHTML = '';
 
-        const alumnosInscriptos = bd.estudiantes.filter(e => e.materiasIds.includes(mId));
+        const alumnosInscriptos = bd.estudiantes
+            .filter(e => e.materiasIds.includes(mId))
+            .sort((a,b) => a.apellido.localeCompare(b.apellido));
 
         if(alumnosInscriptos.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray; font-style:italic;">No hay estudiantes inscriptos en esta materia.</td></tr>`;
@@ -755,48 +779,78 @@
     }
 
     function initPanelDocente() {
+        const doc = bd.docentes[0];
+        document.getElementById('txt-perfil-docente-titulo').innerText = `${doc.apellido}, ${doc.nombre}`;
+        
         const contBotones = document.getElementById('docente-materias-botones');
-        if(contBotones) {
-            contBotones.innerHTML = '';
-            bd.materias.forEach((mat, index) => {
-                if(index === 0) docenteMateriaActivaId = mat.id;
-                contBotones.innerHTML += `<button type="button" onclick="filtrarMateriaDocente('${mat.id}')">📚 ${mat.nombre}</button> `;
-            });
-            filtrarMateriaDocente(docenteMateriaActivaId);
+        if(!contBotones) return;
+        contBotones.innerHTML = '';
+        
+        if(doc.materiasIds.length === 0) {
+            contBotones.innerHTML = '<span style="color:gray; font-style:italic;">Usted no tiene cátedras asignadas en este ciclo lectivo.</span>';
+            document.getElementById('tabla-alumnos-materia-docente').innerHTML = '';
+            document.getElementById('docente-classroom-box').innerHTML = '';
+            return;
         }
+
+        // Renderizar botones fijando la clase activa en base a docenteMateriaActivaId
+        doc.materiasIds.forEach(mId => {
+            const matObj = bd.materias.find(m => m.id === mId);
+            if(matObj) {
+                const claseActiva = (mId === docenteMateriaActivaId) ? 'class="btn-materia-activa"' : '';
+                contBotones.innerHTML += `<button type="button" ${claseActiva} onclick="seleccionarMateriaDocente('${mId}')">📚 ${matObj.nombre}</button> `;
+            }
+        });
+
+        renderizarContenidoMateriaDocente(docenteMateriaActivaId);
     }
 
-    function filtrarMateriaDocente(mId) {
+    // Nueva función separada para evitar que la interactividad del click rompa el render
+    function seleccionarMateriaDocente(mId) {
         docenteMateriaActivaId = mId;
+        initPanelDocente(); // Re-renderiza los botones para actualizar el color del botón activo
+    }
+
+    function renderizarContenidoMateriaDocente(mId) {
+        const mat = bd.materias.find(m => m.id === mId);
+        const txtClassroomBox = document.getElementById('docente-classroom-box');
+        
+        if(mat && txtClassroomBox) {
+            txtClassroomBox.innerHTML = `<a href="${mat.classroom}" target="_blank" class="btn-classroom">🟢 Aula Classroom: ${mat.nombre}</a>`;
+        }
+
         const tbody = document.getElementById('tabla-alumnos-materia-docente');
         if(!tbody) return;
         tbody.innerHTML = '';
         
-        const inscriptos = bd.estudiantes.filter(e => e.materiasIds.includes(mId));
+        const inscriptos = bd.estudiantes
+            .filter(e => e.materiasIds.includes(mId))
+            .sort((a, b) => a.apellido.localeCompare(b.apellido));
+
         if(inscriptos.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" style="color:gray; font-style:italic; text-align:center;">Ningún alumno cursando esta materia actualmente.</td></tr>`;
         } else {
             inscriptos.forEach(est => {
                 let resumenAsistencias = [];
-                Object.keys(bd.asistencias).forEach(llave => {
+                Object.keys(bd.asistencias).sort().forEach(llave => {
                     if(llave.includes(`_${mId}_${est.id}`)) {
                         const fechaCortada = llave.split('_')[0].substring(5);
                         const valor = bd.asistencias[llave];
-                        resumenAsistencias.push(`<span class="badge-asist badge-${valor.toLowerCase()}">${fechaCortada}: ${valor}</span>`);
+                        resumenAsistencias.push(`<span class="badge-asist badge-${valor.toLowerCase()}" title="Fecha: ${llave.split('_')[0]}">${fechaCortada}: ${valor}</span>`);
                     }
                 });
 
                 tbody.innerHTML += `<tr>
                     <td><strong>${est.apellido}, ${est.nombre}</strong></td>
                     <td>${est.dni}</td>
-                    <td>${resumenAsistencias.join(' ') || '<span style="color:#94a3b8; font-size:0.9em;">Sin registros</span>'}</td>
+                    <td>${resumenAsistencias.join(' ') || '<span style="color:#94a3b8; font-size:0.9em;">Sin registros cargados</span>'}</td>
                 </tr>`;
             });
         }
     }
 
     function initPanelAlumno() {
-        const est = bd.estudiantes[0]; // Simula a Martina González
+        const est = bd.estudiantes[0];
         const tit = document.getElementById('txt-perfil-alumno-titulo');
         if(tit) tit.innerText = `${est.apellido}, ${est.nombre}`;
         
@@ -818,11 +872,9 @@
                 est.materiasIds.forEach(mId => {
                     const mat = bd.materias.find(m => m.id === mId);
                     if(mat) {
-                        // Construir la Grilla (Tabla) de Asistencias para esta materia
                         let filasAsistenciaHTML = "";
                         let contadorFaltas = { P: 0, A: 0, J: 0 };
 
-                        // Recorrer el historial ordenado de asistencias
                         Object.keys(bd.asistencias).sort().reverse().forEach(llave => {
                             if(llave.includes(`_${mId}_${est.id}`)) {
                                 const fecha = llave.split('_')[0];
@@ -840,12 +892,10 @@
                             }
                         });
 
-                        // Si no hay registros de faltas/asistencias guardadas
                         if(filasAsistenciaHTML === "") {
                             filasAsistenciaHTML = `<tr><td colspan="2" style="color:#94a3b8; font-style:italic; text-align:center;">No se registran datos cargados para esta cátedra.</td></tr>`;
                         }
 
-                        // Renderizado de la solapa completa de la materia
                         matContenedor.innerHTML += `
                             <div class="info-bloque" style="background:white; border-left: 6px solid #0284c7; padding:20px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
