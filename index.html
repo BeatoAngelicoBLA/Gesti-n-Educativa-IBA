@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Sistema Escolar Avanzado</title>
+    <title>Alba Digital - Sistema Escolar Completo</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -32,12 +32,14 @@
         .btn-presente { background: #d1fae5; color: #065f46; }
         .btn-ausente { background: #fee2e2; color: #991b1b; }
         .selector-fecha-container { background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .form-carga-rapida { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .form-carga-rapida input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 10px; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🏫 Alba Digital — Control Unificado de Asistencia y Legajos</h2>
+    <h2>🏫 Alba Digital — Control Unificado Escolar</h2>
     
     <div class="user-control">
         <span>👤 <strong>Simular Usuario:</strong></span>
@@ -55,19 +57,44 @@
         
         <div id="menu-navegacion" style="margin-bottom: 20px; display: flex; gap: 10px;">
             <button id="nav-alumnos" onclick="mostrarSeccion('inicio')">👥 Listado de Alumnos</button>
+            <button id="nav-docentes" onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Listado de Docentes</button>
             <button id="nav-constancias" onclick="mostrarSeccion('global-constancias')">📋 Historial de Constancias</button>
             <button id="nav-tomar-lista" class="hidden" onclick="abrirModuloAsistenciaDocente()" style="background:#f59e0b;">📝 Tomar Lista (Historia)</button>
             <button id="nav-ver-asistencia-alumno" class="hidden" onclick="cargarAsistenciaIndividualAlumno('est-1')" style="background:#10b981;">📅 Mi Asistencia</button>
         </div>
 
         <div id="bloque-restringido" class="aviso-permiso hidden">
-            ⚠️ Modo Consulta: Tu nivel de usuario actual no permite modificar la ficha ni cargar documentos PDF/JPG.
+            ⚠️ Modo Consulta: Tu nivel de usuario actual no permite modificar fichas ni dar de alta personal/alumnos.
         </div>
         
         <div id="seccion-inicio">
+            <div id="bloque-alta-estudiante" class="form-carga-rapida">
+                <h4 style="margin: 0 0 10px 0; color: #166534;">📝 Matricular Nuevo Estudiante (Función Administrador)</h4>
+                <input type="text" id="alta-nombre" placeholder="Nombre">
+                <input type="text" id="alta-apellido" placeholder="Apellido">
+                <input type="text" id="alta-dni" placeholder="DNI sin puntos">
+                <button onclick="ejecutarAltaEstudiante()" style="background: #166534;">➕ Matricular Alumno</button>
+            </div>
+
             <h3>Fichas de Alumnos Matriculados</h3>
             <p>Selecciona un estudiante para auditar su legajo digital:</p>
             <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5; list-style-type: square;"></ul>
+        </div>
+
+        <div id="seccion-listado-docentes" class="hidden">
+            <h3>👨‍🏫 Cuerpo Docente y Distribución de Cátedras</h3>
+            <p>Listado del personal de enseñanza registrado en el establecimiento:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Profesor / Docente</th>
+                        <th>Materia Asignada</th>
+                        <th>Días de Cátedra</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-docentes">
+                    </tbody>
+            </table>
         </div>
 
         <div id="seccion-legajo" class="hidden">
@@ -90,7 +117,7 @@
                 
                 <div style="margin-top: 15px; border-top: 1px dashed #bae6fd; padding-top: 15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:bold; color:#1e40af;">➕ Cargar Documentación Real (PDF / JPG / PNG):</label>
-                    <input type="text" id="nombre-documento-nuevo" placeholder="Ej: Certificado Analítico o Foto DNI" style="padding: 6px; width: 250px; margin-right: 10px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <input type="text" id="nombre-documento-nuevo" placeholder="Ej: Certificado Analítico" style="padding: 6px; width: 250px; margin-right: 10px; border: 1px solid #cbd5e1; border-radius: 4px;">
                     <input type="file" id="input-archivo-computadora" accept=".pdf,.jpg,.jpeg,.png" style="font-size:0.9em; color:#475569;">
                     <button onclick="procesarCargaArchivoReal()" style="background:#0ea5e9; padding: 6px 12px; margin-left:10px;">Subir al Legajo</button>
                 </div>
@@ -166,7 +193,7 @@
     let ROL_ACTIVO = "admin";
     let alumnoSeleccionadoId = null;
 
-    // BASE DE DATOS MUTABLE (CON HISTORIAL REAL)
+    // BASE DE DATOS MUTABLE AMPLIADA CON DOCENTES
     const bd_simulada = {
         estudiantes: [
             {
@@ -182,20 +209,25 @@
                 constancias: []
             }
         ],
+        // NUEVA TABLA CON EL CUERPO DOCENTE
+        docentes: [
+            { id: "doc-1", nombre: "Carlos", apellido: "López", materia: "Historia", dias: "Lunes y Miércoles" },
+            { id: "doc-2", nombre: "Beatriz", apellido: "Martínez", materia: "Matemática", dias: "Martes y Jueves" },
+            { id: "doc-3", nombre: "Alejandro", apellido: "Gómez", materia: "Geografía", dias: "Viernes" }
+        ],
         materias: [
             { id: "mat-historia", nombre: "Historia", profesor: "Carlos López", alumnosInscritos: ["est-1", "est-2"] }
         ],
-        asistencias: [] // Aquí se guardarán dinámicamente todos los días
+        asistencias: []
     };
 
-    // GENERADOR DE LISTA DE FECHAS (3 semanas hacia atrás - últimos 15 días hábiles de clase)
     function generarFechasTresSemanas() {
         const fechas = [];
         let d = new Date();
         while (fechas.length < 15) {
             d.setDate(d.getDate() - 1);
             let dayOfWeek = d.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Omitir Sábados (6) y Domingos (0)
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                 let dia = String(d.getDate()).padStart(2, '0');
                 let mes = String(d.getMonth() + 1).padStart(2, '0');
                 let anio = d.getFullYear();
@@ -207,7 +239,6 @@
 
     const LISTA_FECHAS_CLASE = generarFechasTresSemanas();
 
-    // INYECTAR LAS FECHAS EN EL SELECTOR DEL DOCENTE AL ARRANCAR
     function inicializarSelectorFechasDocente() {
         const selector = document.getElementById('selector-fecha-asistencia');
         selector.innerHTML = '';
@@ -217,12 +248,24 @@
         });
     }
 
-    // POBLAR ALGUNOS DATOS DE ASISTENCIA HISTÓRICOS AUTOMÁTICAMENTE PARA PRUEBAS
     function precargarHistorialAsistencias() {
-        // Ponemos asistencias cruzadas automáticas en los días previos
         LISTA_FECHAS_CLASE.slice(1, 5).forEach((f, idx) => {
             bd_simulada.asistencias.push({ estudianteId: "est-1", materiaId: "mat-historia", fecha: f, estado: idx % 2 === 0 ? "Presente" : "Ausente" });
             bd_simulada.asistencias.push({ estudianteId: "est-2", materiaId: "mat-historia", fecha: f, estado: "Presente" });
+        });
+    }
+
+    // CARGAR EL LISTADO DE DOCENTES EN LA TABLA
+    function actualizarListadoDocentes() {
+        const tabla = document.getElementById('tabla-docentes');
+        tabla.innerHTML = '';
+        bd_simulada.docentes.forEach(doc => {
+            tabla.innerHTML += `
+                <tr>
+                    <td><strong>${doc.apellido}, ${doc.nombre}</strong></td>
+                    <td><span class="badge" style="background:#f59e0b;">${doc.materia}</span></td>
+                    <td>${doc.dias}</td>
+                </tr>`;
         });
     }
 
@@ -232,22 +275,26 @@
         
         badge.className = "badge-rol";
         document.getElementById('nav-alumnos').classList.remove('hidden');
+        document.getElementById('nav-docentes').classList.remove('hidden');
         document.getElementById('nav-constancias').classList.remove('hidden');
         document.getElementById('nav-tomar-lista').classList.add('hidden');
         document.getElementById('nav-ver-asistencia-alumno').classList.add('hidden');
 
         if(ROL_ACTIVO === 'admin') {
             badge.innerText = "Admin"; badge.classList.add('admin-color');
+            document.getElementById('bloque-alta-estudiante').classList.remove('hidden'); // Ver alta estudiante
             mostrarSeccion('inicio');
         }
         if(ROL_ACTIVO === 'docente') {
             badge.innerText = "Docente"; badge.classList.add('docente-color');
             document.getElementById('nav-tomar-lista').classList.remove('hidden');
+            document.getElementById('bloque-alta-estudiante').classList.add('hidden'); // Ocultar alta estudiante
             mostrarSeccion('inicio');
         }
         if(ROL_ACTIVO === 'alumno') {
             badge.innerText = "Alumno"; badge.classList.add('alumno-color');
             document.getElementById('nav-alumnos').classList.add('hidden');
+            document.getElementById('nav-docentes').classList.add('hidden');
             document.getElementById('nav-constancias').classList.add('hidden');
             document.getElementById('nav-ver-asistencia-alumno').classList.remove('hidden');
             
@@ -258,176 +305,33 @@
         actualizarInterfazGeneral();
     }
 
-    function actualizarInterfazGeneral() {
-        const lista = document.getElementById('lista-estudiantes');
-        lista.innerHTML = '';
-        bd_simulada.estudiantes.forEach(est => {
-            lista.innerHTML += `<li><span class="item-link" onclick="verLegajo('${est.id}')">${est.apellido}, ${est.nombre}</span> — DNI: ${est.dni} <span class="badge">Legajo: ${est.legajo.nroLegajo}</span></li>`;
-        });
-
-        const tabla = document.getElementById('tabla-constancias');
-        tabla.innerHTML = '';
-        bd_simulada.estudiantes.forEach(est => {
-            est.constancias.forEach(c => {
-                tabla.innerHTML += `<tr><td><span class="item-link" onclick="verLegajo('${est.id}')">${est.apellido}, ${est.nombre}</span></td><td><strong>${c.tipo}</strong></td><td>${c.fecha}</td><td><span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}', '${c.mime || 'pdf'}')">Ver en Visor</span></td></tr>`;
-            });
-        });
-    }
-
-    function verLegajo(idEstudiante) {
-        alumnoSeleccionadoId = idEstudiante;
-        document.getElementById('btn-volver-legajo').classList.remove('hidden');
-        const est = bd_simulada.estudiantes.find(e => e.id === idEstudiante);
-        mostrarSeccion('legajo');
-        
-        document.getElementById('legajo-titulo-nombre').innerText = `${est.apellido}, ${est.nombre}`;
-        document.getElementById('nro-legajo-badge').innerText = `Nº Legajo: ${est.legajo.nroLegajo}`;
-        
-        document.getElementById('f-nombre').value = `${est.nombre} ${est.apellido}`;
-        document.getElementById('f-dni').value = est.dni;
-        document.getElementById('f-nacimiento').value = est.fechaNacimiento + " — " + est.lugarNacimiento;
-        document.getElementById('f-domicilio').value = est.domicilio;
-        document.getElementById('f-telefonos').value = est.telefonos;
-        document.getElementById('f-mails').value = est.mails;
-
-        const inputs = ['f-nombre', 'f-dni', 'f-nacimiento', 'f-domicilio', 'f-telefonos', 'f-mails'];
-        
-        if (ROL_ACTIVO === 'admin') {
-            inputs.forEach(id => document.getElementById(id).removeAttribute('readonly'));
-            document.getElementById('bloque-acciones-admin').classList.remove('hidden');
-            document.getElementById('bloque-restringido').classList.add('hidden');
-        } else {
-            inputs.forEach(id => document.getElementById(id).setAttribute('readonly', true));
-            document.getElementById('bloque-acciones-admin').classList.add('hidden');
-            document.getElementById('bloque-restringido').classList.remove('hidden');
-        }
-
-        document.getElementById('documentos-legajo-container').innerHTML = `
-            <div class="doc-box"><span>📄 Ficha de Matriculación Inicial</span> <span class="item-link" onclick="visualizarDocumento('Ficha de Matriculación', '${est.legajo.fichaMatriculacionUrl}', 'pdf')">Ver Documento</span></div>
-            <div class="doc-box"><span>🎓 Título Secundario Legalizado</span> <span class="item-link" onclick="visualizarDocumento('Título Secundario', '${est.legajo.tituloSecundarioUrl}', 'pdf')">Ver Documento</span></div>
-        `;
-
-        renderizarConstanciasAlumno(est);
-    }
-
-    function renderizarConstanciasAlumno(est) {
-        const constContainer = document.getElementById('constancias-legajo-container');
-        constContainer.innerHTML = est.constancias.length === 0 ? '<p style="color:#64748b; font-size:0.9em;">No posee constancias cargadas desde la computadora.</p>' : '';
-        est.constancias.forEach(c => {
-            constContainer.innerHTML += `<div class="doc-box"><span>📜 ${c.tipo} (${c.fecha})</span> <span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}', '${c.mime}')">Ver en Visor</span></div>`;
-        });
-    }
-
-    function guardarDatosCampos() {
+    // ACCIÓN EXCLUSIVA ADMIN: MATRICULAR ESTUDIANTE NUEVO
+    function ejecutarAltaEstudiante() {
         if (ROL_ACTIVO !== 'admin') return;
-        const est = bd_simulada.estudiantes.find(e => e.id === alumnoSeleccionadoId);
-        est.domicilio = document.getElementById('f-domicilio').value;
-        est.telefonos = document.getElementById('f-telefonos').value;
-        est.mails = document.getElementById('f-mails').value;
-        alert("🛡️ Guardado: Cambios guardados en la ficha.");
-        actualizarInterfazGeneral();
-    }
 
-    // CORRECCIÓN 1: PROCESAR CARGA DE ARCHIVOS REALES DESDE WINDOWS (PDF/JPG)
-    function procesarCargaArchivoReal() {
-        if (ROL_ACTIVO !== 'admin') return;
-        
-        const nombreDoc = document.getElementById('nombre-documento-nuevo').value.trim();
-        const inputArchivo = document.getElementById('input-archivo-computadora');
-        
-        if (!nombreDoc) { alert("Por favor, ingresa una descripción o nombre para el documento."); return; }
-        if (inputArchivo.files.length === 0) { alert("Por favor, selecciona un archivo PDF o Imagen de tu computadora."); return; }
-        
-        const archivo = inputArchivo.files[0];
-        const lector = new FileReader();
-        
-        // Determinar si es una imagen o un pdf
-        let tipoMime = 'pdf';
-        if (archivo.type.includes('image') || archivo.name.endsWith('.jpg') || archivo.name.endsWith('.jpeg') || archivo.name.endsWith('.png')) {
-            tipoMime = 'image';
+        const nombre = document.getElementById('alta-nombre').value.trim();
+        const apellido = document.getElementById('alta-apellido').value.trim();
+        const dni = document.getElementById('alta-dni').value.trim();
+
+        if (!nombre || !apellido || !dni) {
+            alert("⚠️ Error: Todos los campos (Nombre, Apellido y DNI) son obligatorios para matricular un alumno.");
+            return;
         }
 
-        lector.onload = function(e) {
-            const urlBase64 = e.target.result; // El archivo real cargado convertido en link virtual estable
-            const est = bd_simulada.estudiantes.find(e => e.id === alumnoSeleccionadoId);
-            
-            // Inyectar en la base de datos simulada
-            est.constancias.push({
-                id: "c-" + Date.now(),
-                tipo: nombreDoc,
-                fecha: new Date().toLocaleDateString(),
-                url: urlBase64, // Archivo real incrustado
-                mime: tipoMime
-            });
+        const nuevoId = "est-" + (bd_simulada.estudiantes.length + 1);
+        const formatearDni = Number(dni).toLocaleString('es-AR'); // Aplica formato con puntos automáticamente
 
-            alert(`✔️ ¡Éxito! El archivo "${archivo.name}" se cargó correctamente y se anexó al legajo virtual.`);
-            
-            // Limpiar los controles
-            document.getElementById('nombre-documento-nuevo').value = '';
-            inputArchivo.value = '';
-            
-            renderizarConstanciasAlumno(est);
-            actualizarInterfazGeneral();
-        };
-
-        lector.readAsDataURL(archivo); // Ejecutar lectura del archivo local de Windows
-    }
-
-    // CORRECCIÓN 2: LÓGICA DE ASISTENCIA DIARIA (3 SEMANAS)
-    let planillaAsistenciaEdicion = {};
-
-    function abrirModuloAsistenciaDocente() {
-        mostrarSeccion('tomar-lista');
-        cargarListaPorFechaSeleccionada();
-    }
-
-    function cargarListaPorFechaSeleccionada() {
-        const fechaSeleccionada = document.getElementById('selector-fecha-asistencia').value;
-        const materia = bd_simulada.materias.find(m => m.id === "mat-historia");
-        const tabla = document.getElementById('tabla-tomar-lista');
-        tabla.innerHTML = '';
-
-        planillaAsistenciaEdicion = {};
-
-        materia.alumnosInscritos.forEach(idEst => {
-            const est = bd_simulada.estudiantes.find(e => e.id === idEst);
-            
-            // Buscar si ya había asistencia guardada en esa fecha específica en la BD
-            const registroPrevio = bd_simulada.asistencias.find(a => a.estudianteId === idEst && a.fecha === fechaSeleccionada);
-            planillaAsistenciaEdicion[idEst] = registroPrevio ? registroPrevio.estado : "Presente";
-
-            const estado = planillaAsistenciaEdicion[idEst];
-            const badgeColor = estado === "Presente" ? "background:#d1fae5; color:#065f46;" : "background:#fee2e2; color:#991b1b;";
-
-            tabla.innerHTML += `
-                <tr>
-                    <td><strong>${est.apellido}, ${est.nombre}</strong></td>
-                    <td><span id="badge-asist-${idEst}" style="padding:5px 10px; border-radius:4px; font-weight:bold; ${badgeColor}">${estado}</span></td>
-                    <td>
-                        <button class="asistencia-btn btn-presente" onclick="cambiarEstadoAsistenciaTemporal('${idEst}', 'Presente')">✔️ Presente</button>
-                        <button class="asistencia-btn btn-ausente" onclick="cambiarEstadoAsistenciaTemporal('${idEst}', 'Ausente')">❌ Ausente</button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    function cambiarEstadoAsistenciaTemporal(idEst, nuevoEstado) {
-        planillaAsistenciaEdicion[idEst] = nuevoEstado;
-        const badge = document.getElementById(`badge-asist-${idEst}`);
-        badge.innerText = nuevoEstado;
-        if(nuevoEstado === 'Presente') {
-            badge.style = "padding:5px 10px; border-radius:4px; font-weight:bold; background:#d1fae5; color:#065f46;";
-        } else {
-            badge.style = "padding:5px 10px; border-radius:4px; font-weight:bold; background:#fee2e2; color:#991b1b;";
-        }
-    }
-
-    function guardarAsistenciaDocente() {
-        const fechaSeleccionada = document.getElementById('selector-fecha-asistencia').value;
-        
-        Object.keys(planillaAsistenciaEdicion).forEach(idEst => {
-            const indice = bd_simulada.asistencias.findIndex(a => a.estudianteId === idEst && a.fecha === fechaSeleccionada && a.materiaId === "mat-historia");
-            if(indice !== -1) {
-                bd_simulada.asistencias[indice].estado = planillaAsistenciaEdicion[idEst];
-            } else {
-                bd_simulada.asistencias.push({ estudianteId: idEst, materiaId: "mat-historia", fecha: fechaSeleccionada, estado: planillaAsistenciaEdicion[idEst] });
+        // Inyección directa en la base de datos simulada
+        const nuevoEstudiante = {
+            id: nuevoId,
+            nombre: nombre,
+            apellido: apellido,
+            dni: formatearDni,
+            fechaNacimiento: "No registrada",
+            lugarNacimiento: "No registrado",
+            domicilio: "",
+            telefonos: "",
+            mails: "",
+            legajo: {
+                nroLegajo: "LEG-2026-A" + String(Math.floor(100 + Math.random() * 900)),
+                fichaMatriculacionUrl: "
