@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Gestión Avanzada de Legajos</title>
+    <title>Alba Digital - Gestión Avanzada de Legajos Escolares</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -14,7 +14,7 @@
         .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 15; min-height: 600px; }
         .visor-panel { background: #f8fafc; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; flex: 9; min-height: 600px; max-width: 500px; }
         .hidden { display: none !important; }
-        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 5px; }
+        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 5px; transition: background 0.2s; }
         button:hover { background: #0369a1; }
         .item-link { color: #0284c7; text-decoration: underline; cursor: pointer; font-weight: bold; }
         
@@ -26,6 +26,7 @@
         /* Estilos de Fichas/Legajos */
         .info-bloque { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
         .grid-detalles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.95em; }
+        .grid-detalles input { padding: 4px 8px; width: 90%; font-size: 0.95em; }
         .carpeta-digital { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-top: 15px; }
         .item-documento { background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 4px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
         
@@ -33,20 +34,28 @@
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; }
         .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .badge-materia { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; display: inline-block; margin-bottom: 4px; }
         .btn-materia-filtro { background: #e2e8f0; color: #334155; border: 2px solid #cbd5e1; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-right: 8px; }
         .btn-materia-filtro.activo { background: #10b981; color: white; border-color: #059669; }
         .input-archivo-custom { font-size: 0.85em; max-width: 180px; }
+        
+        /* Botones de acción de archivos */
+        .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 4px; border: none; color: white; }
+        .btn-download { background: #10b981; }
+        .btn-download:hover { background: #059669; }
+        .btn-delete { background: #ef4444; }
+        .btn-delete:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🏫 Alba Digital — Matrículas y Legajos Escolares</h2>
+    <h2>🏫 Alba Digital — Matrículas y Cátedras</h2>
     <div class="user-control">
         <span>👤 <strong>Simular Usuario:</strong></span>
         <select id="selector-rol" onchange="cambiarRol()">
             <option value="admin">Director/Admin (Control Total)</option>
-            <option value="docente">Prof. Carlos López (Docente de Historia)</option>
+            <option value="docente">Prof. Carlos López (Docente Multimateria)</option>
             <option value="alumno">Martina González (Estudiante)</option>
         </select>
     </div>
@@ -63,12 +72,12 @@
 
         <div id="seccion-inicio">
             <div id="bloque-alta-estudiante" class="form-carga-rapida">
-                <h4 style="margin: 0 0 12px 0; color: #166534;">📝 Matricular Nuevo Estudiante (Datos Completos de Requisito)</h4>
+                <h4 style="margin: 0 0 12px 0; color: #166534;">📝 Matricular Nuevo Estudiante (Campos Obligatorios de Requisito)</h4>
                 <div class="form-grid">
                     <input type="text" id="alta-apellido" placeholder="Apellido *">
                     <input type="text" id="alta-nombre" placeholder="Nombre *">
-                    <input type="text" id="alta-dni" placeholder="DNI (sin puntos) *">
-                    <input type="date" id="alta-nacimiento" placeholder="Fecha Nacimiento">
+                    <input type="text" id="alta-dni" placeholder="DNI (Opcional en Alta)">
+                    <input type="date" id="alta-nacimiento">
                     <input type="text" id="alta-localidad" placeholder="Localidad">
                     <input type="text" id="alta-provincia" placeholder="Provincia">
                     <input type="text" id="alta-nacionalidad" placeholder="Nacionalidad">
@@ -76,34 +85,49 @@
                     <input type="email" id="alta-mail-priv" placeholder="Mail Privado">
                     <input type="text" id="alta-telefono" placeholder="Teléfono de Contacto">
                 </div>
-                <button onclick="ejecutarAltaEstudiante()" style="background: #166534; width: 100%;">➕ Matricular Alumno y Crear Legajo Base</button>
+                <button onclick="ejecutarAltaEstudiante()" style="background: #166534; width: 100%;">➕ Matricular Alumno (Requisito Mínimo Cumplido)</button>
             </div>
             
             <h3>Fichas de Alumnos Iniciales</h3>
-            <p id="bajada-admin-alumnos">Hacé clic en el nombre de un estudiante para auditar su legajo y anexar documentación digital:</p>
+            <p id="bajada-admin-alumnos">Hacé clic en el nombre de un estudiante para auditar su legajo, editar información o anexar documentación digital:</p>
             <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5;"></ul>
         </div>
 
         <div id="seccion-legajo" class="hidden">
-            <h3 style="color:#0c4a6e; margin-bottom:5px;">📂 Legajo Digital Abierto: <span id="leg-alumno-nombre"></span></h3>
-            <span class="badge" style="background:#0284c7; font-size:0.9em; padding:5px 12px;" id="leg-alumno-badge"></span>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="color:#0c4a6e; margin:0 0 5px 0;">📂 Legajo Digital Abierto: <span id="leg-alumno-nombre"></span></h3>
+                    <span class="badge" style="background:#0284c7; font-size:0.9em; padding:5px 12px;" id="leg-alumno-badge"></span>
+                </div>
+                <div>
+                    <button id="btn-editar-alumno" onclick="activarEdicionAlumno()" style="background:#0284c7;">✏️ Editar Datos del Legajo</button>
+                    <button id="btn-guardar-alumno" onclick="guardarEdicionAlumno()" class="hidden" style="background:#10b981;">💾 Guardar Cambios</button>
+                </div>
+            </div>
             
             <div class="info-bloque" style="margin-top: 15px;">
                 <h4 style="margin:0 0 10px 0; color:#334155;">📋 Ficha de Datos Personales</h4>
-                <div class="grid-detalles">
-                    <div><strong>DNI:</strong> <span id="leg-alumno-dni"></span></div>
-                    <div><strong>Nacionalidad:</strong> <span id="leg-alumno-nacionalidad"></span></div>
-                    <div><strong>Fecha de Nacimiento:</strong> <span id="leg-alumno-f-nac"></span></div>
-                    <div><strong>Lugar:</strong> <span id="leg-alumno-lugar"></span></div>
-                    <div><strong>Mail Institucional:</strong> <span id="leg-alumno-mail-inst"></span></div>
-                    <div><strong>Mail Privado:</strong> <span id="leg-alumno-mail-priv"></span></div>
-                    <div><strong>Teléfono:</strong> <span id="leg-alumno-tel"></span></div>
+                <div class="grid-detalles" id="contenedor-datos-alumno">
+                    <div><strong>DNI:</strong> <span id="txt-al-dni"></span></div>
+                    <div><strong>Nacionalidad:</strong> <span id="txt-al-nacionalidad"></span></div>
+                    <div><strong>Fecha de Nacimiento:</strong> <span id="txt-al-f-nac"></span></div>
+                    <div><strong>Lugar (Localidad/Provincia):</strong> <span id="txt-al-lugar"></span></div>
+                    <div><strong>Mail Institucional:</strong> <span id="txt-al-mail-inst"></span></div>
+                    <div><strong>Mail Privado:</strong> <span id="txt-al-mail-priv"></span></div>
+                    <div><strong>Teléfono:</strong> <span id="txt-al-tel"></span></div>
                 </div>
             </div>
 
+            <div class="info-bloque" style="background:#eff6ff; border-color:#bfdbfe;">
+                <h4 style="margin:0 0 10px 0; color:#1e40af;">📚 Vinculación Académica (Materias del Alumno)</h4>
+                <strong>Inscripto actualmente en:</strong>
+                <div id="legajo-materias-actuales" style="margin: 8px 0;"></div>
+                <select id="selector-materia-asignar"></select>
+                <button onclick="ejecutarAsignacionMateria()" style="background: #1d4ed8; padding:5px 10px; font-size:0.9em;">Inscribir a Cátedra</button>
+            </div>
+
             <div class="carpeta-digital">
-                <h4 style="margin:0 0 12px 0; color:#0f172a;">📁 Repositorio de Documentos Digitales (Formatos PDF / JPG)</h4>
-                <p style="font-size:0.85em; color:#64748b; margin-top:-10px;">Podés subir múltiples archivos por cada categoría requerida.</p>
+                <h4 style="margin:0 0 12px 0; color:#0f172a;">📁 Repositorio de Documentos Digitales</h4>
                 
                 <div style="display:grid; gap:10px;">
                     <div style="background:white; padding:10px; border-radius:4px; border:1px solid #e2e8f0;">
@@ -132,7 +156,6 @@
                     </div>
                 </div>
             </div>
-
             <br>
             <button onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado de Alumnos</button>
         </div>
@@ -143,23 +166,30 @@
                 <div class="form-grid">
                     <input type="text" id="alta-doc-apellido" placeholder="Apellido *">
                     <input type="text" id="alta-doc-nombre" placeholder="Nombre *">
-                    <input type="text" id="alta-doc-materia" placeholder="Materia Asignada *">
+                    <input type="text" id="alta-doc-materia" placeholder="Materia Inicial *">
                     <input type="text" id="alta-doc-dias" placeholder="Días de Cátedra">
                 </div>
-                <button onclick="ejecutarAltaDocente()" style="background: #c2410c; width:100%;">➕ Registrar Docente y Crear Legajo</button>
+                <button onclick="ejecutarAltaDocente()" style="background: #c2410c; width:100%;">➕ Registrar Docente y Crear Legajo Único</button>
             </div>
             
             <h3>Nómina del Personal de Enseñanza</h3>
-            <p>Hacé clic en el botón de la carpeta para auditar los archivos obligatorios de contratación de cada profesor:</p>
+            <p>Hacé clic en el botón de la carpeta para abrir su legajo único, ver o asignarle múltiples materias:</p>
             <table>
-                <thead><tr><th>Profesor / Docente</th><th>Materia</th><th>Días</th><th>Acción</th></tr></thead>
+                <thead><tr><th>Profesor / Docente</th><th>Materias Dictadas</th><th>Días</th><th>Acción</th></tr></thead>
                 <tbody id="tabla-docentes"></tbody>
             </table>
 
             <div id="bloque-legajo-docente-ver" class="carpeta-digital hidden" style="background:#fff7ed; border-color:#fed7aa;">
-                <h3 style="margin-0 0 5px 0; color:#c2410c;">📂 Documentación Digital del Docente: <span id="leg-doc-nombre"></span></h3>
+                <h3 style="margin:0 0 5px 0; color:#c2410c;">📂 Legajo Único de Carga: <span id="leg-doc-nombre"></span></h3>
                 
-                <div style="display:grid; gap:10px; margin-top:15px;">
+                <div style="background:white; padding:12px; border-radius:6px; border:1px solid #fdba74; margin-bottom:15px;">
+                    <strong>Asignar otra Materia a este mismo profesor:</strong>
+                    <div id="leg-doc-materias-actuales" style="margin: 5px 0;"></div>
+                    <select id="selector-materia-docente"></select>
+                    <button onclick="ejecutarAsignacionMateriaDocente()" style="background:#c2410c; padding:4px 8px; font-size:0.85em;">Añadir Materia</button>
+                </div>
+
+                <div style="display:grid; gap:10px;">
                     <div style="background:white; padding:10px; border-radius:4px; border:1px solid #fdba74;">
                         <strong>🪪 Fotocopia DNI (Docente):</strong>
                         <input type="file" class="input-archivo-custom" id="file-doc-dni" multiple accept=".pdf,.jpg,.jpeg,.png">
@@ -189,8 +219,11 @@
         </div>
 
         <div id="seccion-vista-docente" class="hidden">
-            <h3>📝 Panel de Calificaciones y Asistencia — Profesor <span id="docente-nombre-titulo" style="color:#f59e0b;"></span></h3>
-            <p>Materia asignada: <strong id="docente-materia-titulo"></strong></p>
+            <h3>📝 Panel del Docente: <span id="docente-nombre-titulo" style="color:#f59e0b;"></span></h3>
+            <p>Seleccioná qué materia vas a tomar asistencia hoy:</p>
+            <div id="docente-materias-botones" style="margin-bottom:15px;"></div>
+            
+            <h4 style="margin-top:20px;">👥 Alumnos Inscriptos en <span id="docente-materia-activa-txt" style="color:#b45309;"></span>:</h4>
             <table>
                 <thead><tr><th>Estudiante Inscrito</th><th>DNI</th><th>Asistencia Diario</th></tr></thead>
                 <tbody id="tabla-alumnos-docente"></tbody>
@@ -226,25 +259,34 @@
     let alumnoSeleccionadoId = null;
     let docenteSeleccionadoId = null;
     let materiaFiltroActivoId = null;
+    let docenteMateriaActivaId = null; // Materia que está mirando el docente en su panel
 
-    // BASE DE DATOS LOCAL CON SOPORTE DE ARRAYS PARA MÚLTIPLES ARCHIVOS
+    // BASE DE DATOS LOCAL ROBUSTA
     const bd_simulada = {
         estudiantes: [
             { 
                 id: "est-1", nombre: "Martina", apellido: "González", dni: "45.678.912", legajo: "LEG-2026-A042",
-                fechaNac: "15/04/2005", lugar: "CABA, Buenos Aires", nacionalidad: "Argentina", 
+                fechaNac: "2005-04-15", localidad: "CABA", provincia: "Buenos Aires", nacionalidad: "Argentina", 
                 mailInst: "m.gonzalez@alba.edu.ar", mailPriv: "martina.g@gmail.com", tel: "11-5555-1234",
-                materiasIds: ["mat-1"],
+                materiasIds: ["mat-1", "mat-2"],
                 archivos: { dni: [], titulo: [], matricula: [], apto: [] }
             }
         ],
         docentes: [
-            { id: "doc-1", nombre: "Carlos", apellido: "López", materiaId: "mat-1", dias: "Lunes y Miércoles", archivos: { dni: [], titulo: [], ficha: [], seguro: [] } }
+            { 
+                id: "doc-1", nombre: "Carlos", apellido: "López", 
+                materiasIds: ["mat-1", "mat-2"], // Carlos dicta más de una materia ahora
+                dias: "Lunes a Jueves", 
+                archivos: { dni: [], titulo: [], ficha: [], seguro: [] } 
+            }
         ],
-        materias: [{ id: "mat-1", nombre: "Historia" }],
+        materias: [
+            { id: "mat-1", nombre: "Historia" },
+            { id: "mat-2", nombre: "Matemática" }
+        ],
         asistencias: [
             { estudianteId: "est-1", materiaId: "mat-1", fecha: "15/06/2026", estado: "Presente" },
-            { estudianteId: "est-1", materiaId: "mat-1", fecha: "17/06/2026", estado: "Ausente" }
+            { estudianteId: "est-1", materiaId: "mat-2", fecha: "16/06/2026", estado: "Presente" }
         ]
     };
 
@@ -260,6 +302,7 @@
         } else if (ROL_ACTIVO === 'docente') {
             document.getElementById('menu-navegacion').classList.add('hidden');
             mostrarSeccion('vista-docente');
+            docenteMateriaActivaId = bd_simulada.docentes[0].materiasIds[0] || null;
             renderizarVistaDocente();
         } else if (ROL_ACTIVO === 'alumno') {
             document.getElementById('menu-navegacion').classList.add('hidden');
@@ -269,228 +312,7 @@
         }
     }
 
-    // REGISTRO DE ALUMNOS CON DATOS REQUERIDOS EXTENDIDOS
+    // ALTA COMPLETA DONDE SÓLO NOMBRE Y APELLIDO SON OBLIGATORIOS
     function ejecutarAltaEstudiante() {
         const apellido = document.getElementById('alta-apellido').value.trim();
-        const nombre = document.getElementById('alta-nombre').value.trim();
-        const dni = document.getElementById('alta-dni').value.trim();
-
-        if (!apellido || !nombre || !dni) {
-            alert("⚠️ Apellido, Nombre y DNI son campos obligatorios de ingreso.");
-            return;
-        }
-
-        const nuevoEst = {
-            id: "est-" + (bd_simulada.estudiantes.length + 1),
-            nombre: nombre,
-            apellido: apellido,
-            dni: Number(dni).toLocaleString('es-AR'),
-            legajo: "LEG-2026-A" + Math.floor(100 + Math.random() * 900),
-            fechaNac: document.getElementById('alta-nacimiento').value || "No declarada",
-            lugar: `${document.getElementById('alta-localidad').value || 'Sin especificar'}, ${document.getElementById('alta-provincia').value || 'Sin especificar'}`,
-            nacionalidad: document.getElementById('alta-nacionalidad').value || "No declarada",
-            mailInst: document.getElementById('alta-mail-inst').value || "No asignado",
-            mailPriv: document.getElementById('alta-mail-priv').value || "No asignado",
-            tel: document.getElementById('alta-telefono').value || "No registrado",
-            materiasIds: [],
-            archivos: { dni: [], titulo: [], matricula: [], apto: [] }
-        };
-
-        bd_simulada.estudiantes.push(nuevoEst);
-        alert(`🎉 Legajo Matriculado: Creación exitosa para ${apellido}, ${nombre}.`);
-        
-        // Limpiar inputs
-        ['alta-apellido', 'alta-nombre', 'alta-dni', 'alta-nacimiento', 'alta-localidad', 'alta-provincia', 'alta-nacionalidad', 'alta-mail-inst', 'alta-mail-priv', 'alta-telefono'].forEach(id => document.getElementById(id).value = '');
-        
-        renderizarListasAdmin();
-    }
-
-    function ejecutarAltaDocente() {
-        const apellido = document.getElementById('alta-doc-apellido').value.trim();
-        const nombre = document.getElementById('alta-doc-nombre').value.trim();
-        const materiaNom = document.getElementById('alta-doc-materia').value.trim();
-
-        if (!apellido || !nombre || !materiaNom) { alert("⚠️ Completa los campos obligatorios (*)."); return; }
-
-        let mat = bd_simulada.materias.find(m => m.name?.toLowerCase() === materiaNom.toLowerCase());
-        if(!mat){
-            mat = { id: "mat-" + (bd_simulada.materias.length + 1), nombre: materiaNom };
-            bd_simulada.materias.push(mat);
-        }
-
-        bd_simulada.docentes.push({
-            id: "doc-" + (bd_simulada.docentes.length + 1),
-            nombre: nombre, apellido: apellido, materiaId: mat.id,
-            dias: document.getElementById('alta-doc-dias').value || "A definir",
-            archivos: { dni: [], titulo: [], ficha: [], seguro: [] }
-        });
-
-        alert("👨‍🏫 Docente incorporado a la nómina.");
-        renderizarListasAdmin();
-    }
-
-    function renderizarListasAdmin() {
-        const listaEst = document.getElementById('lista-estudiantes');
-        listaEst.innerHTML = '';
-        bd_simulada.estudiantes.forEach(est => {
-            listaEst.innerHTML += `<li>📁 <span class="item-link" onclick="abrirLegajoAlumno('${est.id}')">${est.apellido}, ${est.nombre}</span> — DNI: ${est.dni}</li>`;
-        });
-
-        const tablaDoc = document.getElementById('tabla-docentes');
-        tablaDoc.innerHTML = '';
-        bd_simulada.docentes.forEach(doc => {
-            const mat = bd_simulada.materias.find(m => m.id === doc.materiaId);
-            tablaDoc.innerHTML += `<tr><td><strong>${doc.apellido}, ${doc.nombre}</strong></td><td>${mat.nombre}</td><td>${doc.dias}</td><td><button onclick="abrirLegajoDocente('${doc.id}')" style="background:#f97316; padding:4px 8px; font-size:0.85em;">💼 Abrir Carpeta</button></td></tr>`;
-        });
-    }
-
-    // ABRIR Y RENDERIZAR LEGAJO ALUMNO
-    function abrirLegajoAlumno(idEst) {
-        alumnoSeleccionadoId = idEst;
-        const est = bd_simulada.estudiantes.find(e => e.id === idEst);
-        mostrarSeccion('legajo');
-
-        document.getElementById('leg-alumno-nombre').innerText = `${est.apellido}, ${est.nombre}`;
-        document.getElementById('leg-alumno-badge').innerText = `ID Único: ${est.legajo}`;
-        document.getElementById('leg-alumno-dni').innerText = est.dni;
-        document.getElementById('leg-alumno-nacionalidad').innerText = est.nacionalidad;
-        document.getElementById('leg-alumno-f-nac').innerText = est.fechaNac;
-        document.getElementById('leg-alumno-lugar').innerText = est.lugar;
-        document.getElementById('leg-alumno-mail-inst').innerText = est.mailInst;
-        document.getElementById('leg-alumno-mail-priv').innerText = est.mailPriv;
-        document.getElementById('leg-alumno-tel').innerText = est.tel;
-
-        actualizarListaDocumentosPantalla('alumno', est.archivos);
-    }
-
-    // ABRIR Y RENDERIZAR LEGAJO DOCENTE
-    function abrirLegajoDocente(idDoc) {
-        docenteSeleccionadoId = idDoc;
-        const doc = bd_simulada.docentes.find(d => d.id === idDoc);
-        document.getElementById('bloque-legajo-docente-ver').classList.remove('hidden');
-        document.getElementById('leg-doc-nombre').innerText = `${doc.apellido}, ${doc.nombre}`;
-        
-        actualizarListaDocumentosPantalla('docente', doc.archivos);
-    }
-
-    // SUBIR MÚLTIPLES ARCHIVOS USANDO FILEREADER RECOGIENDO BASE64
-    function subirArchivoLegajo(tipoUsuario, subCategoria, inputId) {
-        const input = document.getElementById(inputId);
-        if(input.files.length === 0) { alert("Selecciona uno o más archivos antes de subir."); return; }
-
-        const usuarioObj = (tipoUsuario === 'alumno') 
-            ? bd_simulada.estudiantes.find(e => e.id === alumnoSeleccionadoId)
-            : bd_simulada.docentes.find(d => d.id === docenteSeleccionadoId);
-
-        let completados = 0;
-        const totalArchivos = input.files.length;
-
-        for (let i = 0; i < totalArchivos; i++) {
-            const archivo = input.files[i];
-            const lector = new FileReader();
-
-            let mimeTipo = 'pdf';
-            if (archivo.type.includes('image') || archivo.name.endsWith('.jpg') || archivo.name.endsWith('.jpeg') || archivo.name.endsWith('.png')) {
-                mimeTipo = 'image';
-            }
-
-            lector.onload = function(e) {
-                usuarioObj.archivos[subCategoria].push({
-                    nombreOriginal: archivo.name,
-                    tipo: mimeTipo,
-                    datosBase64: e.target.result
-                });
-
-                completados++;
-                if (completados === totalArchivos) {
-                    alert(`✔️ Se cargaron exitosamente (${totalArchivos}) archivos a la carpeta.`);
-                    input.value = '';
-                    actualizarListaDocumentosPantalla(tipoUsuario, usuarioObj.archivos);
-                }
-            };
-            lector.readAsDataURL(archivo);
-        }
-    }
-
-    // RE-RENDERIZAR LAS LISTAS DE LINKS DE ARCHIVOS SUBIDOS
-    function actualizarListaDocumentosPantalla(tipo, subCarpetas) {
-        const prefijo = (tipo === 'alumno') ? 'lista-docs-al-' : 'lista-docs-doc-';
-        
-        Object.keys(subCarpetas).forEach(clave => {
-            const divContenedor = document.getElementById(`${prefijo}${clave}`);
-            if(!divContenedor) return;
-            divContenedor.innerHTML = '';
-
-            if(subCarpetas[clave].length === 0) {
-                divContenedor.innerHTML = '<span style="color:#94a3b8; font-size:0.8em; font-style:italic;">Sin archivos digitales adjuntos.</span>';
-                return;
-            }
-
-            subCarpetas[clave].forEach((doc, index) => {
-                divContenedor.innerHTML += `
-                    <div class="item-documento">
-                        <span>📄 ${doc.nombreOriginal.substring(0, 25)}...</span>
-                        <span class="item-link" onclick="cargarVisorLateral('${doc.nombreOriginal}', '${doc.datosBase64}', '${doc.tipo}')">📄 Ver Archivo</span>
-                    </div>`;
-            });
-        });
-    }
-
-    // ACOPLAR EL ARCHIVO AL VISOR INTERACTIVO DERECHO
-    function cargarVisorLateral(nombre, b64, tipo) {
-        document.getElementById('visor-placeholder').classList.add('hidden');
-        document.getElementById('visor-contenedor').classList.remove('hidden');
-        document.getElementById('visor-titulo').innerText = nombre;
-        
-        const mediaBox = document.getElementById('visor-media-box');
-        mediaBox.innerHTML = '';
-
-        if(tipo === 'image') {
-            mediaBox.innerHTML = `<img src="${b64}" style="width:100%; height:100%; object-fit:contain; padding:5px;">`;
-        } else {
-            mediaBox.innerHTML = `<iframe src="${b64}" style="width:100%; height:100%; border:none;"></iframe>`;
-        }
-    }
-
-    // MANEJO VIEJO DE VISTAS (FILTRADOS)
-    function renderizarVistaDocente() {
-        const doc = bd_simulada.docentes[0];
-        const mat = bd_simulada.materias.find(m => m.id === doc.materiaId);
-        document.getElementById('docente-nombre-titulo').innerText = `${doc.apellido}, ${doc.nombre}`;
-        document.getElementById('docente-materia-titulo').innerText = mat.nombre;
-        const t = document.getElementById('tabla-alumnos-docente');
-        t.innerHTML = '';
-        bd_simulada.estudiantes.filter(e => e.materiasIds.includes(doc.materiaId)).forEach(est => {
-            t.innerHTML += `<tr><td><strong>${est.apellido}, ${est.nombre}</strong></td><td>${est.dni}</td><td>Presente</td></tr>`;
-        });
-    }
-
-    function renderizarVistaAlumno() {
-        const est = bd_simulada.estudiantes[0];
-        document.getElementById('alumno-nombre-titulo').innerText = `${est.apellido}, ${est.nombre}`;
-        const cont = document.getElementById('alumno-materias-contenedor');
-        cont.innerHTML = '';
-        est.materiasIds.forEach(mId => {
-            const mat = bd_simulada.materias.find(m => m.id === mId);
-            cont.innerHTML += `<button class="btn-materia-filtro activo">📚 ${mat.nombre}</button>`;
-        });
-        const t = document.getElementById('tabla-asistencia-alumno'); t.innerHTML = '';
-        bd_simulada.asistencias.filter(a => a.estudianteId === est.id).forEach(reg => {
-            const mat = bd_simulada.materias.find(m => m.id === reg.materiaId);
-            t.innerHTML += `<tr><td><strong>${mat.nombre}</strong></td><td>${reg.fecha}</td><td>${reg.estado}</td></tr>`;
-        });
-    }
-
-    function mostrarSeccion(seccion) {
-        const secciones = ['inicio', 'legajo', 'listado-docentes', 'vista-docente', 'vista-alumno'];
-        secciones.forEach(s => document.getElementById('seccion-' + s).classList.add('hidden'));
-        document.getElementById('seccion-' + seccion).classList.remove('hidden');
-        if (seccion !== 'listado-docentes') {
-            document.getElementById('bloque-legajo-docente-ver').classList.add('hidden');
-        }
-    }
-
-    renderizarListasAdmin();
-</script>
-</body>
-</html>
+        const nombre = document
