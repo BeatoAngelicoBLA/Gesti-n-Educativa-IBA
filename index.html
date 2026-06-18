@@ -3,43 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Gestión Avanzada de Legajos Escolares</title>
+    <title>Alba Digital - Gestión Avanzada de Legajos</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
         header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .user-control { background: #0369a1; padding: 8px 12px; border-radius: 6px; }
-        select, input { padding: 8px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-family: inherit; }
-        header select { border: none; font-weight: bold; color: #0c4a6e; }
+        select, input { padding: 8px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-family: inherit; width: 100%; box-sizing: border-box; }
         .container { display: flex; gap: 20px; }
         .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 15; min-height: 600px; }
-        .visor-panel { background: #f8fafc; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; flex: 9; min-height: 600px; max-width: 500px; }
+        .visor-panel { background: #f8fafc; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; flex: 9; max-width: 450px; }
         .hidden { display: none !important; }
         button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 5px; transition: background 0.2s; }
         button:hover { background: #0369a1; }
         .item-link { color: #0284c7; text-decoration: underline; cursor: pointer; font-weight: bold; }
         
         /* Formularios y Grillas */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .form-carga-rapida { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
-        .form-docente { background: #fff7ed; border: 1px solid #ffedd5; }
-        
-        /* Estilos de Fichas/Legajos */
+        .form-carga { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px; margin-bottom: 15px; }
         .info-bloque { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
-        .grid-detalles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.95em; }
-        .grid-detalles input { padding: 4px 8px; width: 90%; font-size: 0.95em; }
+        .grid-detalles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        /* Carpetas de Archivos */
         .carpeta-digital { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-top: 15px; }
-        .item-documento { background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 4px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+        .subcarpeta-archivos { background: white; padding: 12px; border-radius: 5px; border: 1px solid #e2e8f0; margin-bottom: 10px; }
+        .item-documento { background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 4px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; }
-        .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
-        .badge-materia { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; display: inline-block; margin-bottom: 4px; }
-        .btn-materia-filtro { background: #e2e8f0; color: #334155; border: 2px solid #cbd5e1; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-right: 8px; }
-        .btn-materia-filtro.activo { background: #10b981; color: white; border-color: #059669; }
-        .input-archivo-custom { font-size: 0.85em; max-width: 180px; }
+        .badge-materia { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; display: inline-block; }
+        .input-file-sm { font-size: 0.85em; width: auto; display: inline-block; }
+        .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; border: none; color: white; cursor: pointer; margin-left: 3px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🏫 Alba Digital — Matrículas y Cátedras</h2>
+    <div class="user-control">
+        <span>👤 <strong>Simular Usuario:</strong></span>
+        <select id="selector-rol" onchange="cambiarRol()" style="width: auto;">
+            <option value="admin">Director/Admin (Control Total)</option>
+            <option value="docente">Prof. Carlos López (Docente)</option>
+            <option value="alumno">Martina González (Estudiante)</option>
+        </select>
+    </div>
+</header>
+
+<div class="container">
+    
+    <div class="panel">
         
-        /* Botones de acción de archivos */
-        .btn-file-action { padding: 3px 8px; font-size: 0.8em; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 4px; border: none; color: white; }
-        .btn-download { background: #10b981; }
-        .btn-download:hover { background: #059669; }
+        <div id="menu-navegacion" style="margin-bottom: 20px;">
+            <button onclick="mostrarSeccion('inicio')">👥 Legajos de Alumnos</button>
+            <button onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Legajos de Docentes</button>
+        </div>
+
+        <div id="seccion-inicio">
+            <div class="form-carga">
+                <h4 style="margin: 0; color: #166534;">📝 Matricular Nuevo Estudiante (Requisito Inicial Mínimo)</h4>
+                <div class="form-grid">
+                    <input type="text" id="alta-apellido" placeholder="Apellido *">
+                    <input type="text" id="alta-nombre" placeholder="Nombre *">
+                    <input type="text" id="alta-dni" placeholder="DNI">
+                    <input type="date" id="alta-nacimiento" title="Fecha de Nacimiento">
+                    <input type="text" id="alta-localidad" placeholder="Localidad de Nacimiento">
+                    <input type="text" id="alta-provincia" placeholder="Provincia de Nacimiento">
+                    <input type="text" id="alta-nacionalidad" placeholder="Nacionalidad">
+                    <input type="email" id="alta-mail-inst" placeholder="Mail Institucional">
+                    <input type="email" id="alta-mail-priv" placeholder="Mail Privado">
+                    <input type="text" id="alta-telefono" placeholder="Teléfono de Contacto">
+                </div>
+                <button onclick="ejecutarAltaEstudiante()" style="background: #166534; width: 100%;">➕ Matricular Alumno</button>
+            </div>
+            
+            <h3>Nómina de Estudiantes</h3>
+            <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5;"></ul>
+        </div>
+
+        <div id="seccion-legajo" class="hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h3 style="color:#0c4a6e; margin:0;">📂 Legajo Digital: <span id="leg-alumno-nombre"></span></h3>
+                <div>
+                    <button id="btn-editar-alumno" onclick="cambiarModoEdicionAlumno(true)">✏️ Editar Datos</button>
+                    <button id="btn-guardar-alumno" onclick="guardarCambiosAlumno()" class="hidden" style="background:#10b981;">💾 Guardar Cambios</button>
+                </div>
+            </div>
+            
+            <div class="info-bloque">
+                <div class="grid-detalles" id="contenedor-datos-alumno">
+                    </div>
+            </div>
+
+            <div class="carpeta-digital">
+                <h4>📁 Repositorio de Documentos del Alumno</h4>
+                
+                <div class="subcarpeta-archivos">
+                    <strong>🪪 Fotocopia DNI:</strong>
+                    <input type="file" id="file-al-dni" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('alumno', 'dni', 'file-al-dni')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-al-dni"></div>
+                </div>
+
+                <div class="subcarpeta-archivos">
+                    <strong>🎓 Título Secundario:</strong>
+                    <input type="file" id="file-al-titulo" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('alumno', 'titulo', 'file-al-titulo')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-al-titulo"></div>
+                </div>
+
+                <div class="subcarpeta-archivos">
+                    <strong>📝 Matrícula de Inscripción:</strong>
+                    <input type="file" id="file-al-matricula" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('alumno', 'matricula', 'file-al-matricula')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-al-matricula"></div>
+                </div>
+
+                <div class="subcarpeta-archivos">
+                    <strong>🩺 Apto Psico-físico:</strong>
+                    <input type="file" id="file-al-apto" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('alumno', 'apto', 'file-al-apto')" style="padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-al-apto"></div>
+                </div>
+            </div>
+            <br>
+            <button onclick="mostrarSeccion('inicio')">⬅️ Volver al Listado</button>
+        </div>
+
+        <div id="seccion-listado-docentes" class="hidden">
+            <h3>Nómina del Personal de Enseñanza</h3>
+            <table>
+                <thead>
+                    <tr><th>Profesor</th><th>Materias Dictadas</th><th>Acciones</th></tr>
+                </thead>
+                <tbody id="tabla-docentes"></tbody>
+            </table>
+
+            <div id="bloque-legajo-docente" class="carpeta-digital hidden" style="margin-top: 25px; background: #fff7ed; border-color: #fed7aa;">
+                <h3 style="color: #c2410c; margin-top:0;">💼 Legajo Único del Docente: <span id="leg-docente-nombre"></span></h3>
+                
+                <div class="subcarpeta-archivos" style="background:#fff7ed;">
+                    <strong>🪪 Fotocopia DNI (Docente):</strong>
+                    <input type="file" id="file-doc-dni" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('docente', 'dni', 'file-doc-dni')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-doc-dni"></div>
+                </div>
+
+                <div class="subcarpeta-archivos" style="background:#fff7ed;">
+                    <strong>📜 Título de Profesor / Habilitante:</strong>
+                    <input type="file" id="file-doc-titulo" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('docente', 'titulo', 'file-doc-titulo')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-doc-titulo"></div>
+                </div>
+
+                <div class="subcarpeta-archivos" style="background:#fff7ed;">
+                    <strong>📂 Ficha Personal / CV:</strong>
+                    <input type="file" id="file-doc-ficha" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('docente', 'ficha', 'file-doc-ficha')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-doc-ficha"></div>
+                </div>
+
+                <div class="subcarpeta-archivos" style="background:#fff7ed;">
+                    <strong>🛡️ Seguro / ART:</strong>
+                    <input type="file" id="file-doc-seguro" class="input-file-sm" multiple accept=".pdf,.jpg,.jpeg,.png">
+                    <button onclick="subirArchivoLegajo('docente', 'seguro', 'file-doc-seguro')" style="background:#c2410c; padding:4px 8px; font-size:0.8em;">Cargar</button>
+                    <div id="lista-docs-doc-seguro"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-vista-docente" class="hidden">
+            <h3>👨‍🏫 Panel del Profesor: Carlos López</h3>
+            <p>Seleccione la materia activa para ver las listas correspondientes:</p>
+            <div id="docente-materias-botones" style="margin-bottom: 15px;"></div>
+            
+            <table>
+                <thead><tr><th>Alumno Inscrito</th><th>DNI de Control</th></tr></thead>
+                <tbody id="tabla-alumnos-materia-docente"></tbody>
+            </table>
+        </div>
+
+        <div id="seccion-vista-alumno" class="hidden">
+            <h3>🎓 Portal del Estudiante: <span id="txt-perfil-alumno-titulo"></span></h3>
+            <div class="info-bloque" style="background:#f0fdf4; border-color:#bbf7d0;">
+                <h4>📋 Ficha de Requisitos Académicos</h4>
+                <div class="grid-detalles" id="portal-alumno-datos"></div>
+            </div>
+            <h4>📚 Mis Cátedras Activas</h4>
+            <div id="portal-alumno-materias"></div>
+        </div>
+
+    </div>
+
+    <div class="visor-panel">
+        <h3 style="margin-top:0; color:#0c4a6e;">👁️ Visor Express</h3>
+        <div id="visor-vacio" style="color:#64748b; font-size:0.9em;">Ningún archivo seleccionado para visualización.</div>
+        <div id="visor-contenido" class="hidden">
+            <h4 id="visor-titulo" style="margin:0 0 10px 0; color:#0284c7; font-size: 0.95em;"></h4>
+            <div id="visor-box" style="width:100%; height:450px; background:white; border:1px solid #cbd5e1;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let ROL_ACTIVO = "admin";
+    let alumnoSeleccionadoId = null;
+    let docenteSeleccionadoId = null;
+    let docenteMateriaActivaId = "mat-1";
+
+    const bd = {
+        estudiantes: [
+            { 
+                id: "est-1", nombre: "Martina", apellido: "González", dni: "45.678.912", 
+                fechaNac: "2005-04-15", localidad: "CABA", provincia: "Buenos Aires", nacionalidad: "Argentina", 
+                mailInst: "m.gonzalez@alba.edu.ar", mailPriv: "martina.g@gmail.com", tel: "11-5555-1234",
+                materiasIds: ["mat-1", "mat-2"], 
+                archivos: { dni: [], titulo: [], matricula: [], apto: [] } 
+            }
+        ],
+        docentes: [
+            { id: "doc-1", nombre: "Carlos", apellido: "López", materiasIds: ["mat-1", "mat-2"], archivos: { dni: [], titulo: [], ficha: [], seguro: [] } }
+        ],
+        materias: [
+            { id: "mat-1", nombre: "Historia" },
+            { id: "mat-2", nombre: "Matemática" }
+        ]
+    };
+
+    function cambiarRol() {
+        ROL_ACTIVO = document.getElementById('selector-rol').value;
+        document.getElementById('visor-vacio').classList.remove('hidden');
+        document.getElementById('visor-contenido').classList.add('hidden');
+
+        if (ROL_ACTIVO === 'admin') {
+            document.getElementById('menu-navegacion').classList.remove('hidden');
+            mostrarSeccion('inicio');
+            initAdmin();
+        } else if (ROL_ACTIVO === 'docente') {
+            document.getElementById('menu-navegacion').classList.add('hidden');
+            mostrarSeccion('vista-docente');
+            initPanelDocente();
+        } else if (ROL_ACTIVO === 'alumno') {
+            document.getElementById('menu-navegacion').classList.add('hidden');
+            mostrarSeccion('vista-alumno');
+            initPanelAlumno();
+        }
+    }
+
+    function mostrarSeccion(sec) {
+        ['inicio', 'legajo', 'listado-docentes', 'vista-docente', 'vista-alumno'].forEach(s => {
+            document.getElementById('seccion-' + s).classList.add('hidden');
+        });
+        document.getElementById('seccion-' + sec).classList.remove('hidden');
+        if(sec !== 'listado-docentes') document.getElementById('bloque-legajo-docente').classList.add('hidden');
+    }
+
+    function initAdmin() {
+        const lista = document.getElementById('lista-estudiantes');
+        if(lista) {
+            lista.innerHTML = '';
+            bd.getEstudiantes = bd.estudiantes; // Resguardo
+            bd.estudiantes.forEach(est => {
+                lista.innerHTML += `<li>📁 <span class="item-link" onclick="abrirLegajoAlumno('${est.id}')">${est.apellido}, ${est.nombre}</span></li>`;
+            });
+        }
+
+        const tbody = document.getElementById('tabla-docentes');
+        if(tbody) {
+            tbody.innerHTML = '';
+            bd.docentes.forEach(doc => {
+                const mats = doc.materiasIds.map(mId => bd.materias.find(m => m.id === mId).nombre).join(', ');
+                tbody.innerHTML += `<tr>
+                    <td><strong>${doc.apellido}, ${doc.nombre}</strong></td>
+                    <td>${mats}</td>
+                    <td><button onclick="abrirLegajoDocente('${doc.id}')" style="background:#f97316; padding: 5px 10px;">📁 Ver Carpeta Única</button></td>
+                </tr>`;
+            });
+        }
+    }
+
+    function ejecutarAltaEstudiante() {
+        const ap = document.getElementById('alta-apellido').value.trim();
+        const nom = document.getElementById('alta-nombre').value.trim();
+        if(!ap || !nom) { alert("⚠️ El Apellido y el Nombre son requeridos obligatoriamente."); return; }
+
+        bd.estudiantes.push({
+            id: "est-" + (bd.estudiantes.length + 1),
+            nombre: nom, apellido: ap,
+            dni: document.getElementById('alta-dni').value.trim() || "No cargado",
+            fechaNac: document.getElementById('alta-nacimiento').value || "No cargado",
+            localidad: document.getElementById('alta-localidad').value.trim() || "No cargado",
+            provincia: document.getElementById('alta-provincia').value.trim() || "No cargado",
+            nacionalidad: document.getElementById('alta-nacionalidad').value.trim() || "No cargado",
+            mailInst: document.getElementById('alta-mail-inst').value.trim() || "No cargado",
+            mailPriv: document.getElementById('alta-mail-priv').value.trim() || "No cargado",
+            tel: document.getElementById('alta-telefono').value.trim() || "No cargado",
+            materiasIds: ["mat-1"],
+            archivos: { dni: [], titulo: [], matricula: [], apto: [] }
+        });
+
+        ['alta-apellido', 'alta-nombre', 'alta-dni', 'alta-nacimiento', 'alta-localidad', 'alta-provincia', 'alta-nacionalidad', 'alta-mail-inst', 'alta-mail-priv', 'alta-telefono'].forEach(id => document.getElementById(id).value = '');
+        initAdmin();
+        alert("🎉 Legajo creado.");
+    }
+
+    function abrirLegajoAlumno(id) {
+        alumnoSeleccionadoId = id;
+        mostrarSeccion('legajo');
+        cambiarModoEdicionAlumno(false);
+    }
+
+    function cambiarModoEdicionAlumno(modoEdicion) {
+        const est = bd.estudiantes.find(e => e.id === alumnoSeleccionadoId);
+        document.getElementById('leg-alumno-nombre').innerText = `${est.apellido}, ${est.nombre}`;
+        const cont = document.getElementById('contenedor-datos-alumno');
+
+        if (!modoEdicion) {
+            document.getElementById('btn-editar-alumno').classList.remove('hidden');
+            document.getElementById('btn-guardar-alumno').classList.add('hidden');
+            cont.innerHTML = `
+                <div><strong>DNI:</strong> <span>${est.dni}</span></div>
+                <div><strong>Nacionalidad:</strong> <span>${est.nacionalidad}</span></div>
+                <div><strong>Fecha de Nacimiento:</strong> <span>${est.fechaNac}</span></div>
+                <div><strong>Lugar (Localidad / Provincia):</strong> <span>${est.localidad} / ${est.provincia}</span></div>
+                <div><strong>Mail Institucional:</strong> <span>${est.mailInst}</span></div>
+                <div><strong>Mail Privado:</strong> <span>${est.mailPriv}</span></div>
+                <div><strong>Teléfono de Contacto:</strong> <span>${est.tel}</span></div>
+                <div><strong>Inscripciones Activas:</strong> <span>${est.materiasIds.map(mId => bd.materias.find(m => m.id === mId).nombre).join(', ')}</span></div>`;
+        } else {
+            document.getElementById('btn-editar-alumno').classList.add('hidden');
+            document.getElementById('btn-guardar-alumno').classList.remove('hidden');
+            cont.innerHTML = `
+                <div><strong>DNI:</strong> <input type="text" id="edit-dni" value="${est.dni}"></div>
+                <div><strong>Nacionalidad:</strong> <input type="text" id="edit-nacio" value="${est.nacionalidad}"></div>
+                <div><strong>Fecha de Nacimiento:</strong> <input type="date" id="edit-fnac" value="${est.fechaNac}"></div>
+                <div><strong>Localidad:</strong> <input type="text" id="edit-local" value="${est.localidad}"></div>
+                <div><strong>Provincia:</strong> <input type="text" id="edit-prov" value="${est.provincia}"></div>
+                <div><strong>Mail Institucional:</strong> <input type="email" id="edit-minst" value="${est.mailInst}"></div>
+                <div><strong>Mail Privado:</strong> <input type="email" id="edit-mpriv" value="${est.mailPriv}"></div>
+                <div><strong>Teléfono:</strong> <input type="text" id="edit-tel" value="${est.tel}"></div>`;
+        }
+        renderTodosLosArchivos('alumno', est.archivos);
+    }
+
+    function guardarCambiosAlumno() {
+        const est = bd.estudiantes.find(e => e.id === alumnoSeleccionadoId);
+        est.dni = document.getElementById('edit-dni').value.trim();
+        est.nacionalidad = document.getElementById('edit-nacio').value.trim();
+        est.fechaNac = document.getElementById('edit-fnac').value;
+        est.localidad = document.getElementById('edit-local').value.trim();
+        est.provincia = document.getElementById('edit-prov').value.trim();
+        est.mailInst = document.getElementById('edit-minst').value.trim();
+        est.mailPriv = document.getElementById('edit-mpriv').value.trim();
+        est.tel = document.getElementById('edit-tel').value.trim();
+
+        cambiarModoEdicionAlumno(false);
+        initAdmin();
+        alert("💾 Ficha actualizada.");
+    }
+
+    function abrirLegajoDocente(id) {
+        docenteSeleccionadoId = id;
+        const doc = bd.docentes.find(d => d.id === id);
+        document.getElementById('bloque-legajo-docente').classList.remove('hidden');
+        document.getElementById('leg-docente-nombre').innerText = `${doc.apellido}, ${doc.nombre}`;
+        renderTodosLosArchivos('docente', doc.archivos);
+    }
+
+    function subirArchivoLegajo(tipoUsuario, subCarpeta, inputId) {
+        const input = document.getElementById(inputId);
+        if(!input || input.files.length === 0) { alert("Por favor, seleccione uno o más archivos."); return; }
+
+        const usuarioObj = (tipoUsuario === 'alumno') 
+            ? bd.estudiantes.find(e => e.id === alumnoSeleccionadoId)
+            : bd.docentes.find(d => d.id === docenteSeleccionadoId);
+
+        let archivosProcesados = 0;
+        const cantidadTotal = input.files.length;
+
+        for (let i = 0; i < cantidadTotal; i++) {
+            const file = input.files[i];
+            const lector = new FileReader();
+
+            lector.onload = function(e) {
+                usuarioObj.archivos[subCarpeta].push({
+                    idArc: "arc-" + Date.now() + Math.floor(Math.random() * 1000),
+                    nombre: file.name,
+                    b64: e.target.result,
+                    tipo: file.type.includes('image') ? 'img' : 'pdf'
+                });
+
+                archivosProcesados++;
+                if(archivosProcesados === cantidadTotal) {
+                    input.value = '';
+                    renderTodosLosArchivos(tipoUsuario, usuarioObj.archivos);
+                }
+            };
+            lector.readAsDataURL(file);
+        }
+    }
+
+    function renderTodosLosArchivos(tipoUsuario, estructuraCarpetas) {
+        const prefijoId = tipoUsuario === 'alumno' ? 'lista-docs-al-' : 'lista-docs-doc-';
+        
+        Object.keys(estructuraCarpetas).forEach(clave => {
+            const divContenedor = document.getElementById(`${prefijoId}${clave}`);
+            if(!divContenedor) return;
+            divContenedor.innerHTML = '';
+
+            if(estructuraCarpetas[clave].length === 0) {
+                divContenedor.innerHTML = '<span style="color:#a1a1aa; font-size:0.8em; font-style:italic;">(Sin documentos cargados)</span>';
+                return;
+            }
+
+            estructuraCarpetas[clave].forEach(arc => {
+                divContenedor.innerHTML += `<div class="item-documento">
+                    <span class="item-link" onclick="verVisor('${arc.nombre}', '${arc.b64}', '${arc.tipo}')">📄 ${arc.nombre.substring(0,22)}</span>
+                    <div>
+                        <button class="btn-file-action" style="background:#10b981;" onclick="descargarArchivo('${arc.nombre}', '${arc.b64}')">💾</button>
+                        <button class="btn-file-action" style="background:#ef4444;" onclick="eliminarArchivo('${tipoUsuario}', '${clave}', '${arc.idArc}')">🗑️</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function verVisor(nombre, b64, tipo) {
+        document.getElementById('visor-vacio').classList.add('hidden');
+        document.getElementById('visor-contenido').classList.remove('hidden');
+        document.getElementById('visor-titulo').innerText = nombre;
+        const box = document.getElementById('visor-box');
+        box.innerHTML = (tipo === 'img') ? `<img src="${b64}" style="width:100%; height:100%; object-fit:contain; padding:5px; box-sizing:border-box;">` : `<iframe src="${b64}" style="width:100%; height:100%; border:none;"></iframe>`;
+    }
+
+    function descargarArchivo(nombre, b64) {
+        const a = document.createElement('a');
+        a.href = b64; a.download = nombre; a.click();
+    }
+
+    function eliminarArchivo(tipoUsuario, subCarpeta, idArc) {
+        const usuarioObj = (tipoUsuario === 'alumno') ? bd.estudiantes.find(e => e.id === alumnoSeleccionadoId) : bd.docentes.find(d => d.id === docenteSeleccionadoId);
+        usuarioObj.archivos[subCarpeta] = usuarioObj.archivos[subCarpeta].filter(a => a.idArc !== idArc);
+        renderTodosLosArchivos(tipoUsuario, usuarioObj.archivos);
+        document.getElementById('visor-vacio').classList.remove('hidden');
+        document.getElementById('visor-contenido').classList.add('hidden');
+    }
+
+    function initPanelDocente() {
+        const doc = bd.docentes[0];
+        const contBotones = document.getElementById('docente-materias-botones');
+        if(contBotones) {
+            contBotones.innerHTML = '';
+            doc.materiasIds.forEach(mId => {
+                const mat = bd.materias.find(m => m.id === mId);
+                contBotones.innerHTML += `<button onclick="filtrarMateriaDocente('${mId}')">📚 ${mat.nombre}</button> `;
+            });
+            filtrarMateriaDocente(docenteMateriaActivaId);
+        }
+    }
+
+    function filtrarMateriaDocente(mId) {
+        docenteMateriaActivaId = mId;
+        const tbody = document.getElementById('tabla-alumnos-materia-docente');
+        if(tbody) {
+            tbody.innerHTML = '';
+            bd.estudiantes.filter(e => e.materiasIds.includes(mId)).forEach(est => {
+                tbody.innerHTML += `<tr><td><strong>${est.apellido}, ${est.nombre}</strong></td><td>${est.dni}</td></tr>`;
+            });
+        }
+    }
+
+    function initPanelAlumno() {
+        const est = bd.estudiantes[0];
+        const tit = document.getElementById('txt-perfil-alumno-titulo');
+        if(tit) tit.innerText = `${est.apellido}, ${est.nombre}`;
+        
+        const datosDiv = document.getElementById('portal-alumno-datos');
+        if(datosDiv) {
+            datosDiv.innerHTML = `
+                <div><strong>DNI Cargado:</strong> ${est.dni}</div>
+                <div><strong>Nacionalidad:</strong> ${est.nacionalidad}</div>
+                <div><strong>Contacto Telefónico:</strong> ${est.tel}</div>
+                <div><strong>Mail Oficial Escolar:</strong> ${est.mailInst}</div>`;
+        }
+
+        const matContenedor = document.getElementById('portal-alumno-materias');
+        if(matContenedor) {
+            matContenedor.innerHTML = '';
+            est.materiasIds.forEach(mId => {
+                const mat = bd.materias.find(m => m.id === mId);
+                matContenedor.innerHTML += `<span class="badge-materia" style="background:#10b981; padding: 6px 12px; font-size:1em;">📚 ${mat.nombre}</span>`;
+            });
+        }
+    }
+
+    // DISPARADOR DE ARRANQUE ABSOLUTO
+    window.onload = function() {
+        initAdmin();
+    };
+</script>
+</body>
+</html>
