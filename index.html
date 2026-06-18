@@ -251,4 +251,189 @@
         tabla.innerHTML = '';
         bd_simulada.estudiantes.forEach(est => {
             est.constancias.forEach(c => {
-                tabla.innerHTML +=
+                tabla.innerHTML += `<tr><td><span class="item-link" onclick="verLegajo('${est.id}')">${est.apellido}, ${est.nombre}</span></td><td><strong>${c.tipo}</strong></td><td>${c.fecha}</td><td><span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}')">Ver en Visor</span></td></tr>`;
+            });
+        });
+    }
+
+    function verLegajo(idEstudiante) {
+        alumnoSeleccionadoId = idEstudiante;
+        document.getElementById('btn-volver-legajo').classList.remove('hidden');
+        const est = bd_simulada.estudiantes.find(e => e.id === idEstudiante);
+        mostrarSeccion('legajo');
+        
+        document.getElementById('legajo-titulo-nombre').innerText = `${est.apellido}, ${est.nombre}`;
+        document.getElementById('nro-legajo-badge').innerText = `Nº Legajo: ${est.legajo.nroLegajo}`;
+        
+        document.getElementById('f-nombre').value = `${est.nombre} ${est.apellido}`;
+        document.getElementById('f-dni').value = est.dni;
+        document.getElementById('f-nacimiento').value = est.fechaNacimiento + " — " + est.lugarNacimiento;
+        document.getElementById('f-domicilio').value = est.domicilio;
+        document.getElementById('f-telefonos').value = est.telefonos;
+        document.getElementById('f-mails').value = est.mails;
+
+        const inputs = ['f-nombre', 'f-dni', 'f-nacimiento', 'f-domicilio', 'f-telefonos', 'f-mails'];
+        
+        // REGLA 1: Solo el Administrador puede editar datos y ver herramientas de carga
+        if (ROL_ACTIVO === 'admin') {
+            inputs.forEach(id => document.getElementById(id).removeAttribute('readonly'));
+            document.getElementById('bloque-acciones-admin').classList.remove('hidden');
+            document.getElementById('bloque-restringido').classList.add('hidden');
+        } else {
+            inputs.forEach(id => document.getElementById(id).setAttribute('readonly', true));
+            document.getElementById('bloque-acciones-admin').classList.add('hidden');
+            document.getElementById('bloque-restringido').classList.remove('hidden');
+        }
+
+        document.getElementById('documentos-legajo-container').innerHTML = `
+            <div class="doc-box"><span>📄 Ficha de Matriculación Inicial</span> <span class="item-link" onclick="visualizarDocumento('Ficha de Matriculación', '${est.legajo.fichaMatriculacionUrl}')">Ver Documento</span></div>
+            <div class="doc-box"><span>🎓 Título Secundario Legalizado</span> <span class="item-link" onclick="visualizarDocumento('Título Secundario', '${est.legajo.tituloSecundarioUrl}')">Ver Documento</span></div>
+            <div class="doc-box"><span>📝 Contrato Educativo Anual</span> <span class="item-link" onclick="visualizarDocumento('Contrato Educativo', '${est.legajo.contratoEducativoUrl}')">Ver Documento</span></div>
+        `;
+
+        renderizarConstanciasAlumno(est);
+    }
+
+    function renderizarConstanciasAlumno(est) {
+        const constContainer = document.getElementById('constancias-legajo-container');
+        constContainer.innerHTML = est.constancias.length === 0 ? '<p style="color:#64748b; font-size:0.9em;">No posee constancias emitidas.</p>' : '';
+        est.constancias.forEach(c => {
+            constContainer.innerHTML += `<div class="doc-box"><span>📜 ${c.tipo} (${c.fecha})</span> <span class="item-link" onclick="visualizarDocumento('${c.tipo}', '${c.url}')">Ver en Visor</span></div>`;
+        });
+    }
+
+    // ACCIÓN EXCLUSIVA ADMIN: MODIFICAR TEXTAREAS
+    function guardarDatosCampos() {
+        if (ROL_ACTIVO !== 'admin') return;
+        const est = bd_simulada.estudiantes.find(e => e.id === alumnoSeleccionadoId);
+        est.domicilio = document.getElementById('f-domicilio').value;
+        est.telefonos = document.getElementById('f-telefonos').value;
+        est.mails = document.getElementById('f-mails').value;
+        alert("🛡️ Guardado: Cambios guardados en la ficha del estudiante.");
+        actualizarInterfazGeneral();
+    }
+
+    // ACCIÓN EXCLUSIVA ADMIN: SUBIR DOCUMENTACIÓN
+    function simularCargaDocumento() {
+        if (ROL_ACTIVO !== 'admin') return;
+        const est = bd_simulada.estudiantes.find(e => e.id === alumnoSeleccionadoId);
+        const tipoDoc = prompt("Ingrese el tipo o título del documento a cargar (ej: Certificado Analítico Parcial):");
+        if(!tipoDoc) return;
+        
+        est.constancias.push({
+            id: "c-" + Date.now(),
+            tipo: tipoDoc,
+            fecha: "17/06/2026",
+            url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        });
+        alert("✔️ Documento cargado y anexado al legajo con éxito.");
+        renderizarConstanciasAlumno(est);
+    }
+
+    // REGLA 2: EL DOCENTE TOMA LISTA DE SU MATERIA CON SUS ALUMNOS
+    let asistenciaTemporal = {};
+    function cargarModuloAsistenciaDocente() {
+        mostrarSeccion('tomar-lista');
+        const materia = bd_simulada.materias.find(m => m.id === "mat-historia"); // Solo accede a Historia (su materia)
+        const tabla = document.getElementById('tabla-tomar-lista');
+        tabla.innerHTML = '';
+
+        materia.alumnosInscritos.forEach(idEst => {
+            const est = bd_simulada.estudiantes.find(e => e.id === idEst);
+            // Buscar el último estado registrado en la BD o poner Presente por defecto
+            if(!asistenciaTemporal[idEst]) {
+                const registroPrevio = bd_simulada.asistencias.find(a => a.estudianteId === idEst && a.fecha === "17/06/2026");
+                asistenciaTemporal[idEst] = registroPrevio ? registroPrevio.estado : "Presente";
+            }
+
+            const estado = asistenciaTemporal[idEst];
+            const badgeColor = estado === "Presente" ? "background:#d1fae5; color:#065f46;" : "background:#fee2e2; color:#991b1b;";
+
+            tabla.innerHTML += `
+                <tr>
+                    <td><strong>${est.apellido}, ${est.nombre}</strong> (DNI: ${est.dni})</td>
+                    <td><span id="badge-asist-${idEst}" style="padding:5px 10px; border-radius:4px; font-weight:bold; ${badgeColor}">${estado}</span></td>
+                    <td>
+                        <button class="asistencia-btn btn-presente" onclick="marcarAsistenciaEstado('${idEst}', 'Presente')">✔️ Presente</button>
+                        <button class="asistencia-btn btn-ausente" onclick="marcarAsistenciaEstado('${idEst}', 'Ausente')">❌ Ausente</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    function marcarAsistenciaEstado(idEst, nuevoEstado) {
+        asistenciaTemporal[idEst] = nuevoEstado;
+        const badge = document.getElementById(`badge-asist-${idEst}`);
+        badge.innerText = nuevoEstado;
+        if(nuevoEstado === 'Presente') {
+            badge.style = "padding:5px 10px; border-radius:4px; font-weight:bold; background:#d1fae5; color:#065f46;";
+        } else {
+            badge.style = "padding:5px 10px; border-radius:4px; font-weight:bold; background:#fee2e2; color:#991b1b;";
+        }
+    }
+
+    function guardarAsistenciaDocente() {
+        // Impactar los cambios de la lista en la "Base de Datos" simulada
+        Object.keys(asistenciaTemporal).forEach(idEst => {
+            // Si ya existía la asistencia de hoy, la actualizamos, si no, la creamos
+            const indice = bd_simulada.asistencias.findIndex(a => a.estudianteId === idEst && a.fecha === "17/06/2026");
+            if(indice !== -1) {
+                bd_simulada.asistencias[indice].estado = asistenciaTemporal[idEst];
+            } else {
+                bd_simulada.asistencias.push({ estudianteId: idEst, materiaId: "mat-historia", fecha: "17/06/2026", estado: asistenciaTemporal[idEst] });
+            }
+        });
+        alert("🔒 Planilla de asistencia guardada y enviada al servidor de administración escolar.");
+    }
+
+    // REGLA 3: ALUMNOS VISUALIZAN SUS PROPIOS PRESENTES
+    function cargarAsistenciaIndividualAlumno(idAlumno) {
+        mostrarSeccion('view-asistencia-alumno'); // Ajuste de id
+        document.getElementById('seccion-ver-asistencia-alumno').classList.remove('hidden');
+        
+        const est = bd_simulada.estudiantes.find(e => e.id === idAlumno);
+        document.getElementById('nombre-alumno-panel').innerText = `${est.nombre} ${est.apellido}`;
+        
+        const registros = bd_simulada.asistencias.filter(a => a.estudianteId === idAlumno);
+        const tabla = document.getElementById('tabla-mi-asistencia');
+        tabla.innerHTML = '';
+        
+        let presentes = 0;
+        let ausentes = 0;
+
+        registros.forEach(r => {
+            const materia = bd_simulada.materias.find(m => m.id === r.materiaId);
+            const colorCondicion = r.estado === 'Presente' ? 'color:#10b981; font-weight:bold;' : 'color:#ef4444; font-weight:bold;';
+            if(r.estado === 'Presente') presentes++; else ausentes++;
+
+            tabla.innerHTML += `
+                <tr>
+                    <td><strong>${materia.nombre}</strong></td>
+                    <td>${r.fecha}</td>
+                    <td style="${colorCondicion}">${r.estado}</td>
+                </tr>`;
+        });
+
+        document.getElementById('stats-presentes').innerText = presentes;
+        document.getElementById('stats-ausentes').innerText = ausentes;
+    }
+
+    function visualizarDocumento(tipo, url) {
+        document.getElementById('visor-placeholder').classList.add('hidden');
+        document.getElementById('visor-contenedor').classList.remove('hidden');
+        document.getElementById('visor-titulo').innerText = tipo;
+        document.getElementById('visor-iframe').src = url;
+    }
+
+    function mostrarSeccion(seccion) {
+        const secciones = ['inicio', 'legajo', 'global-constancias', 'tomar-lista', 'ver-asistencia-alumno'];
+        secciones.forEach(s => document.getElementById('seccion-' + s).classList.add('hidden'));
+        
+        const target = document.getElementById('seccion-' + seccion);
+        if(target) target.classList.remove('hidden');
+    }
+
+    actualizarInterfazGeneral();
+</script>
+</body>
+</html>
