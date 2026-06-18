@@ -3,83 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba Digital - Sistema Escolar Control Total</title>
+    <title>Alba Digital - Sistema Escolar</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f1f5f9; color: #1e293b; }
-        header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .user-control { background: #0369a1; padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-size: 0.9em; }
-        select { padding: 6px 10px; border-radius: 4px; border: none; font-weight: bold; color: #0c4a6e; font-family: inherit; }
+        header { background: #0c4a6e; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .user-control { background: #0369a1; padding: 8px 12px; border-radius: 6px; }
+        select { padding: 6px 10px; border-radius: 4px; border: none; font-weight: bold; color: #0c4a6e; }
         .container { display: flex; gap: 20px; }
-        .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 1; min-height: 600px; }
+        .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 1; min-height: 500px; }
         .hidden { display: none !important; }
-        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 5px; }
         button:hover { background: #0369a1; }
         .item-link { color: #0284c7; text-decoration: underline; cursor: pointer; font-weight: bold; }
-        .doc-preview { width: 100%; height: 520px; border: 2px solid #cbd5e1; margin-top: 15px; border-radius: 6px; background: white; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 60px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px; font-family: inherit; resize: none; color: #334155; }
-        .doc-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
-        .badge-rol { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
-        .admin-color { background: #ef4444; color: white; }
-        .docente-color { background: #f59e0b; color: white; }
-        .alumno-color { background: #10b981; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; }
-        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
-        th { background-color: #f8fafc; color: #475569; }
-        .aviso-permiso { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
-        .asistencia-btn { padding: 5px 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; margin-right: 5px; }
-        .btn-presente { background: #d1fae5; color: #065f46; }
-        .btn-ausente { background: #fee2e2; color: #991b1b; }
-        .selector-fecha-container { background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
         .form-carga-rapida { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
         .form-carga-rapida input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 10px; }
         .form-docente { background: #fff7ed; border: 1px solid #ffedd5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        th { background-color: #f8fafc; }
+        .badge { background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .aviso-permiso { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🏫 Alba Digital — Control Unificado Escolar</h2>
-    
+    <h2>🏫 Alba Digital — Control Escolar</h2>
     <div class="user-control">
         <span>👤 <strong>Simular Usuario:</strong></span>
         <select id="selector-rol" onchange="cambiarRol()">
             <option value="admin">Director/Admin (Control Total)</option>
-            <option value="docente">Prof. Carlos López (Docente de Historia)</option>
+            <option value="docente">Prof. Carlos López (Docente)</option>
             <option value="alumno">Martina González (Estudiante)</option>
         </select>
-        <span id="badge-usuario-activo" class="badge-rol admin-color">Admin</span>
     </div>
 </header>
 
 <div class="container">
-    <div id="panel-principal" class="panel">
-        
-        <div id="menu-navegacion" style="margin-bottom: 20px; display: flex; gap: 10px;">
-            <button id="nav-alumnos" onclick="mostrarSeccion('inicio')">👥 Listado de Alumnos</button>
-            <button id="nav-docentes" onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Listado de Docentes</button>
-            <button id="nav-constancias" onclick="mostrarSeccion('global-constancias')">📋 Historial de Constancias</button>
-            <button id="nav-tomar-lista" class="hidden" onclick="abrirModuloAsistenciaDocente()" style="background:#f59e0b;">📝 Tomar Lista (Historia)</button>
-            <button id="nav-ver-asistencia-alumno" class="hidden" onclick="cargarAsistenciaIndividualAlumno('est-1')" style="background:#10b981;">📅 Mi Asistencia</button>
+    <div class="panel">
+        <div style="margin-bottom: 20px;">
+            <button onclick="mostrarSeccion('inicio')">👥 Listado de Alumnos</button>
+            <button onclick="mostrarSeccion('listado-docentes')">👨‍🏫 Listado de Docentes</button>
+            <button id="nav-tomar-lista" class="hidden" onclick="mostrarSeccion('tomar-lista')" style="background:#f59e0b;">📝 Tomar Lista</button>
+            <button id="nav-ver-asistencia-alumno" class="hidden" onclick="cargarAsistenciaAlumno()" style="background:#10b981;">📅 Mi Asistencia</button>
         </div>
 
         <div id="bloque-restringido" class="aviso-permiso hidden">
-            ⚠️ Modo Consulta: Tu nivel de usuario actual no permite modificar fichas ni dar de alta personal/alumnos.
+            ⚠️ Modo Consulta: Tu nivel de usuario actual no permite modificar datos.
         </div>
         
         <div id="seccion-inicio">
             <div id="bloque-alta-estudiante" class="form-carga-rapida">
-                <h4 style="margin: 0 0 10px 0; color: #166534;">📝 Matricular Nuevo Estudiante (Función Administrador)</h4>
+                <h4 style="margin: 0 0 10px 0; color: #166534;">📝 Matricular Nuevo Estudiante (Admin)</h4>
                 <input type="text" id="alta-nombre" placeholder="Nombre">
                 <input type="text" id="alta-apellido" placeholder="Apellido">
                 <input type="text" id="alta-dni" placeholder="DNI sin puntos">
                 <button onclick="ejecutarAltaEstudiante()" style="background: #166534;">➕ Matricular Alumno</button>
             </div>
-
             <h3>Fichas de Alumnos Matriculados</h3>
-            <p>Selecciona un estudiante para auditar su legajo digital:</p>
-            <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5; list-style-type: square;"></ul>
+            <ul id="lista-estudiantes" style="font-size: 1.1em; line-height: 2.5;"></ul>
         </div>
 
-        <div id="seccion-listado-docentes
+        <div id="seccion-listado-docentes" class="hidden">
+            <div id="bloque-alta-docente" class="form-carga-rapida form-docente">
+                <h4 style="margin: 0 0 10px 0; color: #c2410c;">👨‍🏫 Registrar Nuevo Profesor (Admin)</h4>
+                <input type="text" id="alta-doc-nombre" placeholder="Nombre">
+                <input type="text" id="alta-doc-apellido" placeholder="Apellido">
+                <input type="text" id="alta-doc-materia" placeholder="Materia">
+                <input type="text" id="alta-doc-dias" placeholder="Días">
+                <button onclick="ejecutarAltaDocente()" style="background: #c2410c;">➕ Registrar Docente</button>
+            </div>
+            <h3>👨‍🏫 Cuerpo Docente</h3>
+            <table>
+                <thead>
+                    <tr><th>Profesor / Docente</th><th>Materia Asignada</th><th>Días de Cátedra</th></tr>
+                </thead>
+                <tbody id="tabla-docentes"></tbody>
+            </table>
+        </div>
+
+        <div id="seccion-tomar-lista" class="hidden">
+            <h3>📝 Planilla de Presentismo — Historia</h3>
+            <p>Profesor: Carlos López</p>
+            <p style="background:#fffbeb; padding:10px; border-radius:4px;">📅 Fecha de hoy: 18/06/2026</p>
+            <table>
+                <thead>
+                    <tr><th>Estudiante</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>González, Martina</td><td><span style="background:#d1fae5; color:#065f46; padding:4px; border-radius:4px; font-weight:bold;">Presente</span></td></tr>
+                    <tr><td>Roca, Julián</td><td><span style="background:#d1fae5; color:#065f46; padding:4px; border-radius:4px; font-weight:bold;">Presente</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="seccion-ver-asistencia-alumno" class="hidden">
+            <h3>📅 Mi Panel de Asistencias y Presentismo</h3>
+            <p>Estudiante: <strong>Martina González</strong></p>
+            <table>
+                <thead>
+                    <tr><th>Materia</th><th>Fecha</th><th>Condición</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Historia</td><td>17/06/2026</td><td style="color:#10b981; font-weight:bold;">Presente</td></tr>
+                    <tr><td>Historia</td><td>15/06/2026</td><td style="color:#ef4444; font-weight:bold;">Ausente</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let ROL_ACTIVO = "admin";
+
+    const bd_simulada = {
+        estudiantes: [
+            { id: "est-1", nombre: "Martina", apellido: "González", dni: "45.678.912", legajo: "LEG-2026-A042" },
+            { id: "est-2", nombre: "Julián", apellido: "Roca", dni: "46.112.354", legajo: "LEG-2026-A109" }
+        ],
+        docentes: [
+            { id: "doc-1", nombre: "Carlos", apellido: "López", materia: "Historia", dias: "Lunes y Miércoles" },
+            { id: "doc-2", nombre: "Beatriz", apellido: "Martínez", materia: "Matemática", dias: "Martes y Jueves" }
+        ]
+    };
+
+    function cambiarRol() {
+        ROL_ACTIVO = document.getElementById('selector-rol').value;
+        
+        // Reset de botones especiales
+        document.getElementById('nav-tomar-lista').classList.add('hidden');
+        document.getElementById('nav-ver-asistencia-alumno').classList.add('hidden');
+        document.getElementById('bloque-restringido').classList.add('hidden');
+
+        if (ROL_ACTIVO === 'admin') {
+            document.getElementById('bloque-alta-estudiante').classList.remove('hidden');
+            document.getElementById('bloque-alta-docente').classList.remove('hidden');
+            mostrarSeccion('inicio');
+        } 
+        else if (ROL_ACTIVO === 'docente') {
+            document.getElementById('bloque-alta-estudiante').classList.add('hidden');
+            document.getElementById('bloque-alta-docente').classList.add('hidden');
+            document.getElementById('nav-tomar-lista').classList.remove('hidden');
+            document.getElementById('bloque-restringido').classList.remove('hidden');
+            mostrarSeccion('inicio');
+        } 
+        else if (ROL_ACTIVO === 'alumno') {
+            document.getElementById('bloque-restringido').classList.remove('hidden');
+            document.getElementById('nav-ver-asistencia-alumno').classList.remove('hidden');
+            mostrarSeccion('ver-asistencia-alumno');
+        }
+    }
+
+    function ejecutarAltaEstudiante() {
+        const nombre = document.getElementById('alta-nombre').value.trim();
+        const apellido = document.getElementById('alta-apellido').value.trim();
+        const dni = document.getElementById('alta-dni').value.trim();
+
+        if (!nombre || !apellido || !dni) {
+            alert("⚠️ Todos los campos son obligatorios.");
+            return;
+        }
+
+        const nuevoEstudiante = {
+            id: "est-" + (bd_simulada.estudiantes.length + 1),
+            nombre: nombre,
+            apellido: apellido,
+            dni: dni,
+            legajo: "LEG-2026-A" + Math.floor(100 + Math.random() * 900)
+        };
+
+        bd_simulada.estudiantes.push(nuevoEstudiante);
+        alert(`🎉 ¡Matriculación Exitosa! ${apellido}, ${nombre} agregado.`);
+        
+        document.getElementById('alta-nombre').value = '';
+        document.getElementById('alta-apellido').value = '';
+        document.getElementById('alta-dni').value = '';
+
+        renderizarListas();
+    }
+
+    function ejecutarAltaDocente() {
+        const nombre = document.getElementById('alta-doc-nombre').value.trim();
+        const apellido = document.getElementById('alta-doc-apellido').value.trim();
+        const materia = document.getElementById('alta-doc-materia').value.trim();
+        const dias = document.getElementById('alta-doc-dias').value.trim();
+
+        if (!nombre || !apellido || !materia || !dias) {
+            alert("⚠️ Todos los campos son obligatorios.");
+            return;
+        }
+
+        const nuevoDocente = {
+            id: "doc-" + (bd_simulada.docentes.length + 1),
+            nombre: nombre,
+            apellido: apellido,
+            materia: materia,
+            dias: dias
+        };
+
+        bd_simulada.docentes.push(nuevoDocente);
+        alert(`👨‍🏫 ¡Profesor registrado! ${apellido}, ${nombre} incorporado.`);
+        
+        document.getElementById('alta-doc-nombre').value = '';
+        document.getElementById('alta-doc-apellido').value = '';
+        document.getElementById('alta-doc-materia').value = '';
+        document.getElementById('alta-doc-dias').value = '';
+
+        renderizarListas();
+    }
+
+    function renderizarListas() {
+        // Render Alumnos
+        const listaEst = document.getElementById('lista-estudiantes');
+        listaEst.innerHTML = '';
+        bd_simulada.estudiantes.forEach(est => {
+            listaEst.innerHTML += `<li><strong>${est.apellido}, ${est.nombre}</strong> — DNI: ${est.dni} <span class="badge">Legajo: ${est.legajo}</span></li>`;
+        });
+
+        // Render Docentes
+        const tablaDoc = document.getElementById('tabla-docentes');
+        tablaDoc.innerHTML = '';
+        bd_simulada.docentes.forEach(doc => {
+            tablaDoc.innerHTML += `<tr><td><strong>${doc.apellido}, ${doc.nombre}</strong></td><td><span class="badge" style="background:#f59e0b;">${doc.materia}</span></td><td>${doc.dias}</td></tr>`;
+        });
+    }
+
+    function mostrarSeccion(seccion) {
+        const secciones = ['inicio', 'listado-docentes', 'tomar-lista', 'ver-asistencia-alumno'];
+        secciones.forEach(s => document.getElementById('seccion-' + s).classList.add('hidden'));
+        document.getElementById('seccion-' + seccion).classList.remove('hidden');
+    }
+
+    // Inicializar al cargar
+    renderizarListas();
+</script>
+</body>
+</html>
